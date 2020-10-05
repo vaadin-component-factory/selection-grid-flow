@@ -45,7 +45,7 @@ public class DepartmentData {
                 new Department(52, "Sub-Office 2", departmentList.get(15), "Anu2"));
         for (int i = 0; i < 60; i++) {
             departmentList
-                    .add(new Department(200+i, "T300- "+i, null, "Test"));
+                    .add(new Department(200+i, "T "+i, null, "Test"));
         }
         Department department = new Department(300, "T 300", null, "Test");
         departmentList.add(department);
@@ -58,7 +58,7 @@ public class DepartmentData {
     private static void addChildren(List<Department> departmentList, Department parent) {
         for (int i = 0; i < 60; i++) {
             departmentList
-                .add(new Department(301+i, "T "+i, parent, "Test"));
+                .add(new Department(301+i, "T 300-"+i, parent, "Test"));
         }
     }
 

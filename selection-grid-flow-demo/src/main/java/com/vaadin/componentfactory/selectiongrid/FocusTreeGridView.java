@@ -25,19 +25,29 @@ public class FocusTreeGridView extends VerticalLayout {
 
         SelectionTreeGrid<Department> grid = buildGrid();
 
-        ComboBox<Department> personComboBox = new ComboBox<>();
+        ComboBox<Department> personComboBox = new ComboBox<>("Focus");
         personComboBox.addValueChangeListener(item -> {
             if (item.getValue() != null) {
-                grid.scrollToItem(item.getValue());
+                grid.focusOnCell(item.getValue());
             }
         });
         personComboBox.setItems(departmentData.getDepartments());
 
         add(personComboBox);
+
+        ComboBox<Department> scrollCombobox = new ComboBox<>("Scroll");
+        scrollCombobox.addValueChangeListener(item -> {
+            if (item.getValue() != null) {
+                grid.scrollToItem(item.getValue());
+            }
+        });
+        scrollCombobox.setItems(departmentData.getDepartments());
+        add(scrollCombobox);
+
         addAndExpand(grid);
         setPadding(false);
         setSizeFull();
-        grid.scrollToItem(departmentData.getDepartments().get(departmentData.getDepartments().size() - 1));
+        // grid.focusOnCell(departmentData.getDepartments().get(departmentData.getDepartments().size() - 1));
     }
 
     private SelectionTreeGrid<Department> buildGrid() {

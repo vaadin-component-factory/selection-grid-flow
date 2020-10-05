@@ -5,7 +5,7 @@ window.Vaadin.Flow.selectionTreeGridConnector = {
             return;
         }
         c.$selectionTreeGridconnector = {};
-
+/*
         c.scrollWhenReady = function(index, firstCall) {
             if(c.loading || firstCall) {
                 var that = this;
@@ -17,6 +17,21 @@ window.Vaadin.Flow.selectionTreeGridConnector = {
                 console.log("scrollWhenReady scrollToIndex");
                c.scrollToIndex(index);
             }
+        };*/
+/*
+        c.focusOnCellWhenReady = function(rowIndex, colIndex, firstCall) {
+            if(c.loading || firstCall) {
+                var that = this;
+                console.log("focusOnCellWhenReady loading");
+                setTimeout(function(){
+                    that.focusOnCellWhenReady(rowIndex, colIndex, false);
+                }, 1);
+            } else {
+                console.log("focusOnCellWhenReady scrollToIndex");
+                c.focusOnCell(rowIndex, colIndex);
+            }
         };
+*/
+
     }
 }

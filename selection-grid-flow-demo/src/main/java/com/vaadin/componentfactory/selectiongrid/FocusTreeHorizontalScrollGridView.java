@@ -21,7 +21,7 @@ public class FocusTreeHorizontalScrollGridView extends VerticalLayout {
         ComboBox<Department> personComboBox = new ComboBox<>();
         personComboBox.addValueChangeListener(item -> {
             if (item.getValue() != null) {
-                grid.scrollToItem(item.getValue());
+                grid.focusOnCell(item.getValue());
             }
         });
         personComboBox.setItems(departmentData.getDepartments());
@@ -37,7 +37,7 @@ public class FocusTreeHorizontalScrollGridView extends VerticalLayout {
         SelectionTreeGrid<Department> grid = new SelectionTreeGrid<>();
         grid.setItems(departmentData.getRootDepartments(),
             departmentData::getChildDepartments);
-        grid.addHierarchyColumn(Department::getName).setHeader("Department Name");
+        grid.addHierarchyColumn(Department::getName).setHeader("Department Name").setWidth("300px");
         grid.addColumn(Department::getParent).setHeader("Department Parent");
         grid.addColumn(Department::getId).setHeader("Department Id");
         grid.addColumn(Department::getManager).setHeader("Department Manager");

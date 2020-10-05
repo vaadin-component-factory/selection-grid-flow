@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+@JsModule("./src/selection-grid-connector.js")
 @JsModule("./src/selection-tree-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
@@ -20,6 +21,19 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             .getPage().executeJs("window.Vaadin.Flow.selectionTreeGridConnector.initLazy($0)", new Serializable[]{this.getElement()});
     }
 
+
+    public void focusOnCell(T item) {
+        focusOnCell(item, null);
+    }
+
+    public void focusOnCell(T item, String columnKey) {
+        expandAncestor(item);
+        int index = getIndexForItem(item);
+        if (index >= 0) {
+            int colIndex = (columnKey == null)? 0: 5;
+            this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
+        }
+    }
 
     /**
      * The method for scrolling to an item. Takes into account lazy loading nature
