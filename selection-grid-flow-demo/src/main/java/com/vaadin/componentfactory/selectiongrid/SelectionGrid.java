@@ -19,8 +19,15 @@ package com.vaadin.componentfactory.selectiongrid;
 
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.data.provider.DataCommunicator;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
+import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionGrid<T> extends Grid<T> {
@@ -29,25 +36,40 @@ public class SelectionGrid<T> extends Grid<T> {
     public void scrollToIndex(int rowIndex) {
         super.scrollToIndex(rowIndex);
     }
+    /**
+     * Focus on the first cell on the row
+     *
+     * @param item item to scroll and focus
+     */
+    public void focusOnCell(T item) {
+        focusOnCell(item, null);
+    }
 
     /**
-     * Find the correct index and scroll to the row
-     * If it's a tree grid
+     * Focus on the specific column on the row
      *
-     * @param item
-     * @param colKey
+     * @param item item to scroll and focus
+     * @param columnKey column to focus
      */
-    public void scrollAndFocus(T item, String colKey) {
-        // todo
-        /*DataProvider<T, ?> dataProvider = getDataProvider();
-        if (dataProvider instanceof ListDataProvider) {
-            ListDataProvider<T> listDataProvider = (ListDataProvider<T>) getDataProvider();
-            listDataProvider.getItems().stream().filter(T::equals).findFirst();
-        }*/
+    public void focusOnCell(T item, String columnKey) {
+        String index = getIndexForItem(item);
+        System.out.println("index=" + index);
+        if (index != null) {
+            int rowIndex = Integer.parseInt(index);
+            rowIndex--;
+            if (columnKey != null) {
+                Column<T> columnByKey = getColumnByKey(columnKey);
+                System.out.println("columnByKey " + columnByKey.getKey());
+            }
+            int colIndex = (columnKey == null)? 0: 1;
+            this.getElement().executeJs("this.focusOnCell($0, $1);", rowIndex, colIndex);
+        }
     }
-/*
-    public int getRowIndex(Grid<T> grid, T row) {
-        List<T> items = grid.getDataCommunicator().fetchItemsWithRange(0,grid.getDataCommunicator().getDataProviderSize());
-        return items.indexOf(row);
-    }*/
+
+
+    private String getIndexForItem(T item) {
+
+        DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+        return dataCommunicator.getKeyMapper().key(item);
+    }
 }

@@ -23,10 +23,21 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     }
 
 
+    /**
+     * Focus on the first cell on the row
+     *
+     * @param item item to scroll and focus
+     */
     public void focusOnCell(T item) {
         focusOnCell(item, null);
     }
 
+    /**
+     * Focus on the specific column on the row
+     *
+     * @param item item to scroll and focus
+     * @param columnKey column to focus
+     */
     public void focusOnCell(T item, String columnKey) {
         expandAncestor(item);
         int index = getIndexForItem(item);
