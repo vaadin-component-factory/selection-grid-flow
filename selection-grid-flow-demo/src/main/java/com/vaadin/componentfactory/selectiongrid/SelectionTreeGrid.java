@@ -14,6 +14,7 @@ import java.util.List;
 @JsModule("./src/selection-tree-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
+    // todo jcg remove it if not needed
     @Override
     protected void initConnector() {
         super.initConnector();
@@ -30,6 +31,10 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         expandAncestor(item);
         int index = getIndexForItem(item);
         if (index >= 0) {
+            if (columnKey != null) {
+                Column<T> columnByKey = getColumnByKey(columnKey);
+                System.out.println("columnByKey " + columnByKey.getKey());
+            }
             int colIndex = (columnKey == null)? 0: 5;
             this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
         }
