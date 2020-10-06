@@ -50,7 +50,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         }
     }
 
-    private void expandAncestor(T item) {
+    private List<T> expandAncestor(T item) {
         List<T> ancestors = new ArrayList<>();
 
         T parent = getTreeData().getParent(item);
@@ -62,17 +62,9 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         if (!ancestors.isEmpty()) {
             expand(ancestors);
         }
-
+        return ancestors;
     }
 
-    /**
-     * This is a method for getting the row index of an item in a treegrid.
-     *
-     * Does not work for Lazy data provider
-     *
-     * @param item the item where to scroll to
-     * @return
-     */
     private int getIndexForItem(T item) {
         HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
         Method getHierarchyMapper ;
@@ -86,7 +78,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             }
         } catch (Exception ignored) {
         }
-        throw new IllegalStateException("Item is not found in the HierarchicalDataCommunicator");
+        return 0;
     }
 
 }
