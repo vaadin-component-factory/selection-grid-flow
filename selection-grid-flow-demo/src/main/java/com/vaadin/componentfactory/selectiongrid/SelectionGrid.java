@@ -52,15 +52,14 @@ public class SelectionGrid<T> extends Grid<T> {
         if (index != null) {
             int rowIndex = Integer.parseInt(index);
             rowIndex--;
-            String internalId = (column != null)?getColumnInternalId(column):"";
+            int colIndex = (column != null)?getColumns().indexOf(column):0;
             // delay the call of focus on cell if it's used on the same round trip (grid creation + focusCell)
-            this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), rowIndex, internalId);
+            this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), rowIndex, colIndex);
         }
     }
 
 
     private String getIndexForItem(T item) {
-
         DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
         return dataCommunicator.getKeyMapper().key(item);
     }

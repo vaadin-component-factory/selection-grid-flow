@@ -38,14 +38,15 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * Focus on the specific column on the row
      *
      * @param item item to scroll and focus
-     * @param columnKey column to focus
+     * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
         expandAncestor(item);
         int index = getIndexForItem(item);
         if (index >= 0) {
-            String internalId = (column != null)?getColumnInternalId(column):"";
-            this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, internalId);
+            //String internalId = (column != null)?getColumnInternalId(column):"";
+            int colIndex = (column != null)?getColumns().indexOf(column):0;
+            this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
         }
     }
 

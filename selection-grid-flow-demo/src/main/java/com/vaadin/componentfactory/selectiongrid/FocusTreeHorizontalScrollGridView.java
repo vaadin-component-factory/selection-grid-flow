@@ -8,6 +8,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Basic example with setItems
  */
@@ -49,19 +52,22 @@ public class FocusTreeHorizontalScrollGridView extends VerticalLayout {
         SelectionTreeGrid<Department> grid = new SelectionTreeGrid<>();
         grid.setItems(departmentData.getRootDepartments(),
             departmentData::getChildDepartments);
-
-        grid.addHierarchyColumn(Department::getName).setHeader("Department Name").setWidth("300px").setKey("name");
-        grid.addColumn(Department::getParent).setHeader("Department Parent").setKey("parent");
-        grid.addColumn(Department::getId).setHeader("Department Id").setKey("id");
-        grid.addColumn(Department::getManager).setHeader("Department Manager").setKey("manager");
-        grid.addColumn(Department::getManager).setHeader("Department Manager col 2").setKey("manager2");
-        grid.addColumn(Department::getManager).setHeader("Department Manager col 3").setKey("manager3");
-        grid.addColumn(Department::getManager).setHeader("Department Manager col 4").setWidth("300px").setKey("manager4");
-        grid.addColumn(Department::getManager).setHeader("Department Manager col 5").setWidth("300px").setKey("manager5");
-        grid.addColumn(Department::getManager).setHeader("Department Manager col 6").setWidth("300px").setKey("manager6");
-        grid.addColumn(Department::getManager).setHeader("Department Manager col 7").setWidth("300px").setKey("manager7");
+        List<Grid.Column<Department>> columns = new ArrayList<>();
+        columns.add(grid.addHierarchyColumn(Department::getName).setHeader("Department Name").setWidth("300px").setKey("name"));
+        columns.add(grid.addColumn(Department::getParent).setHeader("Department Parent").setKey("parent"));
+        columns.add(grid.addColumn(Department::getId).setHeader("Department Id").setKey("id"));
+        columns.add(grid.addColumn(Department::getManager).setHeader("Department Manager").setKey("manager"));
+        columns.add(grid.addColumn(Department::getManager).setHeader("Department Manager col 2").setKey("manager2"));
+        columns.add(grid.addColumn(Department::getManager).setHeader("Department Manager col 3").setKey("manager3"));
+        columns.add(grid.addColumn(Department::getManager).setHeader("Department Manager col 4").setWidth("300px").setKey("manager4"));
+        columns.add(grid.addColumn(Department::getManager).setHeader("Department Manager col 5").setWidth("300px").setKey("manager5"));
+        Grid.Column<Department> manager6 = grid.addColumn(Department::getManager).setHeader("Department Manager col 6").setWidth("300px").setKey(
+            "manager6");
+        columns.add(grid.addColumn(Department::getManager).setHeader("Department Manager col 7").setWidth("300px").setKey("manager7"));
+        columns.add(manager6);
         grid.setWidthFull();
         grid.setColumnReorderingAllowed(true);
+        grid.setColumnOrder(columns);
         return grid;
     }
 }

@@ -2,8 +2,8 @@
 customElements.whenDefined('vaadin-grid').then(() => {
     const Grid = customElements.get('vaadin-grid');
     if (Grid) {
-        Grid.prototype.focusOnCell = function (rowNumber, colId) {
-            const cellNumber = this.getColumnIndexByFlowId(colId);
+        Grid.prototype.focusOnCell = function (rowNumber, cellNumber) {
+            // const cellNumber = this.getColumnIndexByFlowId(colId);
             if (rowNumber < 0 || cellNumber < 0) {
                 throw 'index out of bound';
             }
@@ -40,6 +40,7 @@ customElements.whenDefined('vaadin-grid').then(() => {
             }
         };
 
+        // TODO delete it if unused
         Grid.prototype.getColumnIndexByFlowId = function(flowId) {
             const index = this._columnTree.slice(0).pop()
                 .filter(c => c._flowId)
