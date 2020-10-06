@@ -2,15 +2,9 @@ package com.vaadin.componentfactory.selectiongrid;
 
 import com.vaadin.componentfactory.selectiongrid.bean.Department;
 import com.vaadin.componentfactory.selectiongrid.bean.DepartmentData;
-import com.vaadin.componentfactory.selectiongrid.bean.Person;
-import com.vaadin.componentfactory.selectiongrid.service.PersonService;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.Route;
-
-import java.util.List;
 
 /**
  * Basic example with setItems
@@ -28,7 +22,7 @@ public class FocusTreeGridView extends VerticalLayout {
         ComboBox<Department> personComboBox = new ComboBox<>("Focus");
         personComboBox.addValueChangeListener(item -> {
             if (item.getValue() != null) {
-                grid.focusOnCell(item.getValue(),"name");
+                grid.focusOnCell(item.getValue(),grid.getColumnByKey("name"));
             }
         });
         personComboBox.setItems(departmentData.getDepartments());

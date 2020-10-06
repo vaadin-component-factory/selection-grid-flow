@@ -2,8 +2,10 @@ package com.vaadin.componentfactory.selectiongrid;
 
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -38,16 +40,12 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * @param item item to scroll and focus
      * @param columnKey column to focus
      */
-    public void focusOnCell(T item, String columnKey) {
+    public void focusOnCell(T item, Column<T> column) {
         expandAncestor(item);
         int index = getIndexForItem(item);
         if (index >= 0) {
-            if (columnKey != null) {
-                Column<T> columnByKey = getColumnByKey(columnKey);
-                System.out.println("columnByKey " + columnByKey.getKey());
-            }
-            int colIndex = (columnKey == null)? 0: 5;
-            this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
+            String internalId = (column != null)?getColumnInternalId(column):"";
+            this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, internalId);
         }
     }
 
@@ -97,4 +95,23 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         return 0;
     }
 
+    @Override
+    public void setDataProvider(DataProvider<T, ?> dataProvider) {
+        if (!(dataProvider instanceof TreeDataProvider)) {
+            throw new IllegalArgumentException("SelectionTreeGrid only accepts TreeDataProvider.");
+        }
+        super.setDataProvider(dataProvider);
+    }
+
+    private String getColumnInternalId(Column<T> column) {
+        Method getInternalId ;
+        try {
+            getInternalId = Column.class.getDeclaredMethod("getInternalId");
+            getInternalId.setAccessible(true);
+            return (String) getInternalId.invoke(column);
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
+        throw new IllegalArgumentException("getInternalId");
+    }
 }

@@ -2,7 +2,8 @@
 customElements.whenDefined('vaadin-grid').then(() => {
     const Grid = customElements.get('vaadin-grid');
     if (Grid) {
-        Grid.prototype.focusOnCell = function (rowNumber, cellNumber) {
+        Grid.prototype.focusOnCell = function (rowNumber, colId) {
+            const cellNumber = this.getColumnIndexByFlowId(colId);
             if (rowNumber < 0 || cellNumber < 0) {
                 throw 'index out of bound';
             }
@@ -15,14 +16,14 @@ customElements.whenDefined('vaadin-grid').then(() => {
             }
         }
 
-        Grid.prototype.focusOnCellWhenReady = function(rowIndex, colIndex, firstCall) {
+        Grid.prototype.focusOnCellWhenReady = function(rowIndex, colId, firstCall) {
             if(this.loading || firstCall) {
                 var that = this;
                 setTimeout(function(){
-                    that.focusOnCellWhenReady(rowIndex, colIndex, false);
+                    that.focusOnCellWhenReady(rowIndex, colId, false);
                 }, 1);
             } else {
-                this.focusOnCell(rowIndex, colIndex);
+                this.focusOnCell(rowIndex, colId);
             }
         };
 
@@ -38,6 +39,14 @@ customElements.whenDefined('vaadin-grid').then(() => {
                 this.scrollToIndex(index);
             }
         };
+
+        Grid.prototype.getColumnIndexByFlowId = function(flowId) {
+            const index = this._columnTree.slice(0).pop()
+                .filter(c => c._flowId)
+                //.sort((b, a) => (b._order - a._order))
+                .map(c => c._flowId).indexOf(flowId);
+            return index;
+        }
 
     }
 })

@@ -22,12 +22,8 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.DataCommunicator;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
-import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionGrid<T> extends Grid<T> {
@@ -49,20 +45,16 @@ public class SelectionGrid<T> extends Grid<T> {
      * Focus on the specific column on the row
      *
      * @param item item to scroll and focus
-     * @param columnKey column to focus
+     * @param column column to focus
      */
-    public void focusOnCell(T item, String columnKey) {
+    public void focusOnCell(T item, Column<T> column) {
         String index = getIndexForItem(item);
-        System.out.println("index=" + index);
         if (index != null) {
             int rowIndex = Integer.parseInt(index);
             rowIndex--;
-            if (columnKey != null) {
-                Column<T> columnByKey = getColumnByKey(columnKey);
-                System.out.println("columnByKey " + columnByKey.getKey());
-            }
-            int colIndex = (columnKey == null)? 0: 1;
-            this.getElement().executeJs("this.focusOnCell($0, $1);", rowIndex, colIndex);
+            String internalId = (column != null)?getColumnInternalId(column):"";
+            // delay the call of focus on cell if it's used on the same round trip (grid creation + focusCell)
+            this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), rowIndex, internalId);
         }
     }
 
@@ -72,4 +64,26 @@ public class SelectionGrid<T> extends Grid<T> {
         DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
         return dataCommunicator.getKeyMapper().key(item);
     }
+
+    private String getColumnInternalId(Column<T> column) {
+        Method getInternalId ;
+        try {
+            getInternalId = Column.class.getDeclaredMethod("getInternalId");
+            getInternalId.setAccessible(true);
+            return (String) getInternalId.invoke(column);
+        } catch (Exception ignored) {
+            ignored.printStackTrace();
+        }
+        throw new IllegalArgumentException("getInternalId");
+    }
+
+    @Override
+    public void setDataProvider(DataProvider<T, ?> dataProvider) {
+        if (!(dataProvider instanceof ListDataProvider)) {
+            throw new IllegalArgumentException(
+                "SelectionGrid only accepts ListDataProvider.");
+        }
+        super.setDataProvider(dataProvider);
+    }
+
 }
