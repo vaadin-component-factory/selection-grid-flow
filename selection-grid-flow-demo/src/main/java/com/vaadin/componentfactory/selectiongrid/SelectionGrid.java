@@ -24,6 +24,8 @@ import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
 
 import java.lang.reflect.Method;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionGrid<T> extends Grid<T> {
@@ -48,20 +50,31 @@ public class SelectionGrid<T> extends Grid<T> {
      * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
-        String index = getIndexForItem(item);
-        if (index != null) {
-            int rowIndex = Integer.parseInt(index);
-            rowIndex--;
+        int index = getIndexForItem(item);
+        System.out.println("Index" + index);
+        if (index > 0) {
             int colIndex = (column != null)?getColumns().indexOf(column):0;
             // delay the call of focus on cell if it's used on the same round trip (grid creation + focusCell)
-            this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), rowIndex, colIndex);
+            this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), index, colIndex);
         }
     }
 
 
-    private String getIndexForItem(T item) {
+    private int getIndexForItem(T item) {
         DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-        return dataCommunicator.getKeyMapper().key(item);
+        Method fetchFromProvider;
+        Method getDataProviderSize;
+        try {
+            fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
+            getDataProviderSize = DataCommunicator.class.getDeclaredMethod("getDataProviderSize");
+            fetchFromProvider.setAccessible(true);
+            getDataProviderSize.setAccessible(true);
+            int size = (Integer) getDataProviderSize.invoke(dataCommunicator);
+            return ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, 0, size)).collect(Collectors.toList())
+                .indexOf(item);
+        } catch (Exception ignored) {
+        }
+        return -1;
     }
 
     private String getColumnInternalId(Column<T> column) {

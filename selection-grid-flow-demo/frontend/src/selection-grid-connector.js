@@ -7,10 +7,16 @@ customElements.whenDefined('vaadin-grid').then(() => {
             if (rowNumber < 0 || cellNumber < 0) {
                 throw 'index out of bound';
             }
+            console.log("rowNumber" + rowNumber)
             this.scrollToIndex(rowNumber);
             // This is a very hacky way of doing stuff
             setTimeout(() => {
-                const cell = this.$.items.children[rowNumber % (this.$.items.children.length - 1)].children[cellNumber];
+                //const itemForIndex = this._cache.getItemForIndex(rowNumber);
+                //console.log("This is a very hacky way of doing stuff");
+                const row = Array.from(this.$.items.children).filter(child => child.index === rowNumber)[0];
+                //debugger;
+                //const cell = this.$.items.children[rowNumber % (this.$.items.children.length - 1)].children[cellNumber];
+                const cell = row.children[cellNumber];
                 if (cell) {
                     console.log(cell);
                     cell.focus();
@@ -76,6 +82,17 @@ customElements.whenDefined('vaadin-grid').then(() => {
                 this._loadPage(this._getPageForIndex(scaledIndex), cache);
             }
 
+        }
+        Grid.prototype._afterScroll = function() {
+            this._translateStationaryElements();
+
+            if (!this.hasAttribute('reordering')) {
+                this._scheduleScrolling();
+            }
+
+            this._updateOverflow();
+            //debugger;
+            console.log("_afterScroll");
         }
 
 /*
