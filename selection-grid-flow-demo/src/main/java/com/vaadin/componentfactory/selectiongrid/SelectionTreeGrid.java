@@ -76,6 +76,10 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         }
         if (!ancestors.isEmpty()) {
             expand(ancestors);
+            /*for (int i = ancestors.size() - 1; i >= 0; i--) {
+                getElement().executeJs("$0.refreshExpanded($1)", this.getElement(), getIndexForItem(ancestors.get(i)));
+            }*/
+
         }
         return ancestors;
     }

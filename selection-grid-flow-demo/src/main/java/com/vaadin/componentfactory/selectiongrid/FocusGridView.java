@@ -23,6 +23,7 @@ public class FocusGridView extends VerticalLayout {
         grid.setItems(personList);
 
         Grid.Column<Person> personColumn = grid.addColumn(Person::getFirstName).setHeader("First Name").setKey("name");
+        grid.addColumn(Person::getLastName).setHeader("Last Name");
         grid.addColumn(Person::getAge).setHeader("Age").setKey("age");
         ComboBox<Person> personComboBox = new ComboBox<>();
         personComboBox.addValueChangeListener(item -> {

@@ -37,10 +37,14 @@ customElements.whenDefined('vaadin-grid').then(() => {
                 console.log("scrollWhenReady loading");
                 setTimeout(function(){
                     that.scrollWhenReady(index, false);
-                }, 1);
+                }, 200);
             } else {
-                console.log("scrollWhenReady scrollToIndex");
-                this.scrollToIndex(index);
+                console.log("scrollWhenReady scrollToIndex " + index);
+
+                var that = this;
+                setTimeout(function(){
+                    that.scrollToIndex(index);
+                }, 200);
             }
         };
 
@@ -52,6 +56,47 @@ customElements.whenDefined('vaadin-grid').then(() => {
                 .map(c => c._flowId).indexOf(flowId);
             return index;
         }
+
+        Grid.prototype._getItem = function(index, el) {
+            if (index >= this._effectiveSize) {
+                return;
+            }
+
+            el.index = index;
+            const {cache, scaledIndex} = this._cache.getCacheAndIndex(index);
+            const item = cache.items[scaledIndex];
+            if (item) {
+                this._toggleAttribute('loading', false, el);
+                this._updateItem(el, item);
+                if (this._isExpanded(item)) {
+                    cache.ensureSubCacheForScaledIndex(scaledIndex);
+                }
+            } else {
+                this._toggleAttribute('loading', true, el);
+                this._loadPage(this._getPageForIndex(scaledIndex), cache);
+            }
+
+        }
+
+/*
+        Grid.prototype.refreshExpanded = function(index) {
+            console.log("refreshExpanded - " + index);
+            const {cache, scaledIndex} = this._cache.getCacheAndIndex(index);
+            const item = cache.items[scaledIndex];
+            debugger;
+            if (item) {
+                if (this._isExpanded(item)) {
+                    console.log("_isExpanded");
+                    cache.ensureSubCacheForScaledIndex(scaledIndex);
+                } else {
+
+                    console.log("not expanded");
+                }
+            } else {
+                console.log("load page");
+               this._loadPage(this._getPageForIndex(scaledIndex), cache);
+            }
+        }*/
 
     }
 })

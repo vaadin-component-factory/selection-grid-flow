@@ -43,7 +43,7 @@ public class DepartmentData {
                 new Department(41, "Sub-Office ", departmentList.get(9), "Anu1"));
         departmentList.add(
                 new Department(52, "Sub-Office 2", departmentList.get(15), "Anu2"));
-        for (int i = 0; i < 60; i++) {
+        for (int i = 0; i < 59; i++) {
             departmentList
                     .add(new Department(200+i, "T "+i, null, "Test"));
         }
@@ -51,6 +51,8 @@ public class DepartmentData {
         departmentList.add(department);
         addChildren(departmentList, department);
 
+        departmentList
+            .add(new Department(500, "Last", null, "Last"));
         return departmentList;
 
     }

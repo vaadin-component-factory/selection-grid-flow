@@ -146,7 +146,7 @@ public class Person implements Cloneable {
 
     @Override
     public String toString() {
-        return firstName;
+        return firstName + " " + lastName;
     }
 
     @Override
