@@ -7,13 +7,17 @@ customElements.whenDefined('vaadin-grid').then(() => {
             if (rowNumber < 0 || cellNumber < 0) {
                 throw 'index out of bound';
             }
-            const cell = this.$.items.children[rowNumber].children[cellNumber];
-            if (cell) {
-                this.scrollToIndex(rowNumber);
-                cell.focus();
-            } else {
-                throw 'index out of bound';
-            }
+            this.scrollToIndex(rowNumber);
+            // This is a very hacky way of doing stuff
+            setTimeout(() => {
+                const cell = this.$.items.children[rowNumber % (this.$.items.children.length - 1)].children[cellNumber];
+                if (cell) {
+                    console.log(cell);
+                    cell.focus();
+                } else {
+                    throw 'index out of bound';
+                }
+            }, 100);
         }
 
         Grid.prototype.focusOnCellWhenReady = function(rowIndex, colId, firstCall) {
