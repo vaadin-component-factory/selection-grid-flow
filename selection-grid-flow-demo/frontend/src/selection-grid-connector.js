@@ -9,21 +9,44 @@ customElements.whenDefined('vaadin-grid').then(() => {
             }
             console.log("rowNumber" + rowNumber)
             this.scrollToIndex(rowNumber);
+            this._rowNumberToFocus = rowNumber;
+            this._cellNumberToFocus = cellNumber;
             // This is a very hacky way of doing stuff
-            setTimeout(() => {
+            //setTimeout(function(){
                 //const itemForIndex = this._cache.getItemForIndex(rowNumber);
                 //console.log("This is a very hacky way of doing stuff");
                 const row = Array.from(this.$.items.children).filter(child => child.index === rowNumber)[0];
-                //debugger;
-                //const cell = this.$.items.children[rowNumber % (this.$.items.children.length - 1)].children[cellNumber];
-                const cell = row.children[cellNumber];
-                if (cell) {
-                    console.log(cell);
-                    cell.focus();
-                } else {
-                    throw 'index out of bound';
+                // if row is already
+                if (row) {
+                    //const cell = this.$.items.children[rowNumber % (this.$.items.children.length - 1)].children[cellNumber];
+                    const cell = row.children[cellNumber];
+                    if (cell) {
+                        console.log(cell);
+                        cell.focus();
+                    } else {
+                        throw 'index out of bound';
+                    }
                 }
-            }, 100);
+            //}, 200);
+        }
+
+        Grid.prototype._focus = function() {
+            const rowNumber = this._rowNumberToFocus;
+            const cellNumber = this._cellNumberToFocus;
+            this._rowNumberToFocus = -1;
+            this._cellNumberToFocus = -1;
+            const row = Array.from(this.$.items.children).filter(child => child.index === rowNumber)[0];
+            debugger;
+            //const cell = this.$.items.children[rowNumber % (this.$.items.children.length - 1)].children[cellNumber];
+            const cell = row.children[cellNumber];
+            if (cell) {
+                console.log(cell);
+                cell.focus();
+            } else {
+                throw 'index out of bound';
+            }
+            this._rowNumberToFocus = -1;
+            this._cellNumberToFocus = -1;
         }
 
         Grid.prototype.focusOnCellWhenReady = function(rowIndex, colId, firstCall) {
@@ -67,7 +90,6 @@ customElements.whenDefined('vaadin-grid').then(() => {
             if (index >= this._effectiveSize) {
                 return;
             }
-
             el.index = index;
             const {cache, scaledIndex} = this._cache.getCacheAndIndex(index);
             const item = cache.items[scaledIndex];
@@ -81,39 +103,15 @@ customElements.whenDefined('vaadin-grid').then(() => {
                 this._toggleAttribute('loading', true, el);
                 this._loadPage(this._getPageForIndex(scaledIndex), cache);
             }
-
-        }
-        Grid.prototype._afterScroll = function() {
-            this._translateStationaryElements();
-
-            if (!this.hasAttribute('reordering')) {
-                this._scheduleScrolling();
-            }
-
-            this._updateOverflow();
-            //debugger;
-            console.log("_afterScroll");
-        }
-
-/*
-        Grid.prototype.refreshExpanded = function(index) {
-            console.log("refreshExpanded - " + index);
-            const {cache, scaledIndex} = this._cache.getCacheAndIndex(index);
-            const item = cache.items[scaledIndex];
-            debugger;
-            if (item) {
-                if (this._isExpanded(item)) {
-                    console.log("_isExpanded");
-                    cache.ensureSubCacheForScaledIndex(scaledIndex);
-                } else {
-
-                    console.log("not expanded");
+            /** focus when get item if there is an item to focus **/
+            if (this._rowNumberToFocus > 0) {
+                if (index === this._rowNumberToFocus) {
+                    const row = Array.from(this.$.items.children).filter(child => child.index === this._rowNumberToFocus)[0];
+                    if (row) {
+                        this._focus();
+                    }
                 }
-            } else {
-                console.log("load page");
-               this._loadPage(this._getPageForIndex(scaledIndex), cache);
             }
-        }*/
-
+        }
     }
 })
