@@ -23,7 +23,7 @@
         </license>
     </licenses>
     <properties>
-        <vaadin.version>14.3.2</vaadin.version>
+        <vaadin.version>14.3.8</vaadin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -113,12 +113,6 @@
            <artifactId>selection-grid-flow</artifactId>
            <version>1.0.0</version>
        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.vaadin/flow-component-demo-helpers -->
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>flow-component-demo-helpers</artifactId>
-            <version>2.1.0.beta2</version>
-        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
