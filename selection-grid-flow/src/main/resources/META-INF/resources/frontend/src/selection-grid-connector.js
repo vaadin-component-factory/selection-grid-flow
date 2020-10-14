@@ -9,7 +9,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
       /** workaround when the expanded node opens children the index is outside the grid size **/
       if (rowNumber > this._effectiveSize) {
         const that = this;
-        setTimeout( () => that.scrollToIndex(rowNumber), 100);
+        setTimeout( () => that.scrollToIndex(rowNumber), 200);
       }
       /** End of workaround **/
       this._rowNumberToFocus = rowNumber;
