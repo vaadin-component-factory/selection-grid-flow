@@ -9,13 +9,21 @@ customElements.whenDefined("vaadin-grid").then(() => {
       /** workaround when the expanded node opens children the index is outside the grid size **/
       if (rowNumber > this._effectiveSize) {
         const that = this;
-        setTimeout( () => that.scrollToIndex(rowNumber), 200);
+        setTimeout( () => {
+          that.scrollToIndex(rowNumber);
+          that._startToFocus(rowNumber, cellNumber);
+          }, 200);
+      } else {
+        this._startToFocus(rowNumber, cellNumber);
       }
       /** End of workaround **/
+    };
+
+    Grid.prototype._startToFocus = function (rowNumber, cellNumber) {
       this._rowNumberToFocus = rowNumber;
       this._cellNumberToFocus = cellNumber;
       const row = Array.from(this.$.items.children).filter(
-        (child) => child.index === rowNumber
+          (child) => child.index === rowNumber
       )[0];
       // if row is already
       if (row) {
@@ -26,7 +34,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
           throw "index out of bound";
         }
       }
-    };
+    }
 
     Grid.prototype._focus = function () {
       const rowNumber = this._rowNumberToFocus;
