@@ -109,5 +109,67 @@ customElements.whenDefined("vaadin-grid").then(() => {
         }
       }
     };
+
+    /**
+     * This function overloads the current _loadPage to path this issue
+     * https://github.com/vaadin/vaadin-grid/issues/2055
+     */
+    Grid.prototype._loadPage = function(page, cache) {
+      // make sure same page isn't requested multiple times.
+      if (!cache.pendingRequests[page] && this.dataProvider) {
+        this._setLoading(true);
+        cache.pendingRequests[page] = true;
+        const params = {
+          page,
+          pageSize: this.pageSize,
+          sortOrders: this._mapSorters(),
+          filters: this._mapFilters(),
+          parentItem: cache.parentItem
+        };
+
+        this.dataProvider(params, (items, size) => {
+          if (size !== undefined) {
+            cache.size = size;
+          } else {
+            if (params.parentItem) {
+              cache.size = items.length;
+            }
+          }
+
+          const currentItems = Array.from(this.$.items.children).map(row => row._item);
+
+          // Populate the cache with new items
+          items.forEach((item, itemsIndex) => {
+            const itemIndex = page * this.pageSize + itemsIndex;
+            cache.items[itemIndex] = item;
+            if (this._isExpanded(item) && currentItems.indexOf(item) > -1) {
+              // Force synchronous data request for expanded item sub-cache
+              cache.ensureSubCacheForScaledIndex(itemIndex);
+            }
+          });
+
+          this._hasData = true;
+
+          delete cache.pendingRequests[page];
+
+          this._setLoading(false);
+          this._cache.updateSize();
+          this._effectiveSize = this._cache.effectiveSize;
+
+          Array.from(this.$.items.children)
+              .filter(row => !row.hidden)
+              .forEach(row => {
+                const cachedItem = this._cache.getItemForIndex(row.index);
+                if (cachedItem) { // fix to ensure that the children are loaded - See here
+                  this._getItem(row.index, row);
+                }
+              });
+
+          this._increasePoolIfNeeded(0);
+
+          this.__itemsReceived();
+        });
+      }
+    }
   }
 });
