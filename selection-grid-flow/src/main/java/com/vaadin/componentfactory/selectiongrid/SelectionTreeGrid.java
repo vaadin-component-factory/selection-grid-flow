@@ -7,23 +7,12 @@ import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 @JsModule("./src/selection-grid-connector.js")
-@JsModule("./src/selection-tree-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
-
-    // todo jcg remove it if not needed
-    @Override
-    protected void initConnector() {
-        super.initConnector();
-        (getUI().orElseThrow(() -> new IllegalStateException("Connector can only be initialized for an attached Grid")))
-            .getPage().executeJs("window.Vaadin.Flow.selectionTreeGridConnector.initLazy($0)", new Serializable[]{this.getElement()});
-    }
-
 
     /**
      * Focus on the first cell on the row
