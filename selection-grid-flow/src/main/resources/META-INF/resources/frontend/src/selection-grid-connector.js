@@ -6,6 +6,12 @@ customElements.whenDefined("vaadin-grid").then(() => {
         throw "index out of bound";
       }
       this.scrollToIndex(rowNumber);
+      /** workaround when the expanded node opens children the index is outside the grid size **/
+      if (rowNumber > this._effectiveSize) {
+        const that = this;
+        setTimeout( () => that.scrollToIndex(rowNumber), 100);
+      }
+      /** End of workaround **/
       this._rowNumberToFocus = rowNumber;
       this._cellNumberToFocus = cellNumber;
       const row = Array.from(this.$.items.children).filter(
