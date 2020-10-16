@@ -6,7 +6,10 @@ customElements.whenDefined("vaadin-grid").then(() => {
         throw "index out of bound";
       }
       this.scrollToIndex(rowNumber);
-      /** workaround when the expanded node opens children the index is outside the grid size **/
+      /** workaround when the expanded node opens children the index is outside the grid size
+       * https://github.com/vaadin/vaadin-grid/issues/2060
+       * Remove this once this is fixed
+       **/
       if (rowNumber > this._effectiveSize) {
         const that = this;
         setTimeout( () => {
@@ -125,8 +128,10 @@ customElements.whenDefined("vaadin-grid").then(() => {
     };
 
     /**
+     * TEMPORARY FIX
      * This function overloads the current _loadPage to path this issue
      * https://github.com/vaadin/vaadin-grid/issues/2055
+     * Remove this once the issue is released
      */
     Grid.prototype._loadPage = function(page, cache) {
       // make sure same page isn't requested multiple times.
@@ -185,5 +190,6 @@ customElements.whenDefined("vaadin-grid").then(() => {
         });
       }
     }
+    /** TEMPORARY FIX **/
   }
 });
