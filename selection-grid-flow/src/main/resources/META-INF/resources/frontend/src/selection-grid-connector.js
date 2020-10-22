@@ -241,22 +241,24 @@ customElements.whenDefined("vaadin-grid").then(() => {
       }
     };
 
-    const old_onNavigationKeyDown = Grid.prototype._onNavigationKeyDown;
+    Grid.prototype.old_onNavigationKeyDown = Grid.prototype._onNavigationKeyDown;
     Grid.prototype._onNavigationKeyDown = function _onNavigationKeyDownOverridden(e, key) {
-      old_onNavigationKeyDown(e,key);
+      this.old_onNavigationKeyDown(e,key);
+      // select on shift down on shift up
       if (e.shiftKey && (key === 'ArrowDown' || key === 'ArrowUp')) {
-          console.log("select" +  this._focusedItemIndex);
-          const row = Array.from(this.$.items.children).filter(
+        const row = Array.from(this.$.items.children).filter(
             (child) => child.index === this._focusedItemIndex
         )[0];
-          if (row) {
+        if (row) {
+          // if the item is already selected do nothing
+          if (!(this.selectedItems && this.selectedItems.some((i) => i.key === row._item.key))) {
             if (this.$connector) {
-              debugger;
-              this.$connector.doSelection([row], true);
+              this.$connector.doSelection([row._item], true);
             } else {
-              this.selectItem(row);
+              this.selectItem(row._item);
             }
           }
+        }
       }
     }
   }
