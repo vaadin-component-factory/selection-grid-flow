@@ -1,8 +1,7 @@
 customElements.whenDefined("vaadin-grid").then(() => {
   const Grid = customElements.get("vaadin-grid");
   if (Grid) {
-    Grid.prototype.rangeSelectRowFrom = null;
-    Grid.prototype.rangeSelectRowTo = null;
+    Grid.prototype.rangeSelectRowFrom = -1;
 
     Grid.prototype.focusOnCell = function (rowNumber, cellNumber) {
       if (rowNumber < 0 || cellNumber < 0) {
@@ -214,7 +213,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
             this.deselectItem(tr._item);
           }
         } else {
-          if (e.shiftKey && this.rangeSelectRowFrom) {
+          if (e.shiftKey && this.rangeSelectRowFrom >= 0) {
             // set the target index
             /*const e = new CustomEvent("range-selection", {
               detail: {
