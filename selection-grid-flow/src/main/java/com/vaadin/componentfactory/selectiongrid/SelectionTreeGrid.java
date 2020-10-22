@@ -1,30 +1,95 @@
 package com.vaadin.componentfactory.selectiongrid;
 
+/*
+ * #%L
+ * Selection Grid
+ * %%
+ * Copyright (C) 2020 Vaadin Ltd
+ * %%
+ * This program is available under Commercial Vaadin Add-On License 3.0
+ * (CVALv3).
+ * 
+ * See the file license.html distributed with this software for more
+ * information about licensing.
+ * 
+ * You should have received a copy of the CVALv3 along with this program.
+ * If not, see <http://vaadin.com/license/cval-3>.
+ * #L%
+ */
+
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.KeyMapper;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalArrayUpdater;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.internal.JsonUtils;
+import elemental.json.Json;
+import elemental.json.JsonObject;
 
-import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 @JsModule("./src/selection-grid-connector.js")
-@JsModule("./src/selection-tree-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
+    /// TEMPORARY FIX FOR https://github.com/vaadin/vaadin-grid/issues/1820
+    /// Remove this once this issue is closed and released
+    {
+        // Get fields through reflection
+        final Field hierarchyMapperField;
+        final Field expandedItemIdsField;
+        final Field objectIdKeyMapField;
+        try {
+            objectIdKeyMapField = KeyMapper.class
+                .getDeclaredField("objectIdKeyMap");
+            hierarchyMapperField = HierarchicalDataCommunicator.class
+                .getDeclaredField("mapper");
+            expandedItemIdsField = HierarchyMapper.class
+                .getDeclaredField("expandedItemIds");
 
-    // todo jcg remove it if not needed
-    @Override
-    protected void initConnector() {
-        super.initConnector();
-        (getUI().orElseThrow(() -> new IllegalStateException("Connector can only be initialized for an attached Grid")))
-            .getPage().executeJs("window.Vaadin.Flow.selectionTreeGridConnector.initLazy($0)", new Serializable[]{this.getElement()});
+            expandedItemIdsField.setAccessible(true);
+            hierarchyMapperField.setAccessible(true);
+            objectIdKeyMapField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Create attach listener
+        addAttachListener(event -> {
+            try {
+                HierarchicalDataCommunicator<T> communicator = getDataCommunicator();
+                HierarchyMapper mapper = (HierarchyMapper) hierarchyMapperField
+                    .get(communicator);
+                Set<Object> expandedItemIds = (Set<Object>) expandedItemIdsField
+                    .get(mapper);
+                HashMap<Object, String> objectIdKeyMap = (HashMap) objectIdKeyMapField
+                    .get(communicator.getKeyMapper());
+
+                HierarchicalArrayUpdater.HierarchicalUpdate update = (HierarchicalArrayUpdater.HierarchicalUpdate) getArrayUpdater()
+                    .startUpdate(mapper.getRootSize());
+                update.enqueue("$connector.expandItems",
+                    expandedItemIds
+                        .stream()
+                        .map(objectIdKeyMap::get)
+                        .map(key -> {
+                            JsonObject json = Json.createObject();
+                            json.put("key", key);
+                            return json;
+                        }).collect(
+                        JsonUtils.asArray()));
+                event.getUI().beforeClientResponse(this, ctx -> update.commit());
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
-
-
+    /// END TEMPORARY FIX
     /**
      * Focus on the first cell on the row
      *

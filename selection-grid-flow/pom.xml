@@ -6,11 +6,11 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow</artifactId>
-    <version>1.0.0</version>
+    <version>0.0.2</version>
     <packaging>jar</packaging>
 
     <name>Selection Grid</name>
-    <description>Selection Grid - Add to the Vaadin Grid the abiility to select multiple rows with SHIFT-CTRL Click</description>
+    <description>Selection Grid - Add the ability to focus on a particular row and column and select multiple rows with SHIFT-CTRL Click</description>
 
     <inceptionYear>2020</inceptionYear>
     <organization>
