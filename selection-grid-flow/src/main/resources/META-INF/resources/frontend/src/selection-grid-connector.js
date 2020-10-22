@@ -1,6 +1,9 @@
 customElements.whenDefined("vaadin-grid").then(() => {
   const Grid = customElements.get("vaadin-grid");
   if (Grid) {
+    Grid.prototype.rangeSelectRowFrom = null;
+    Grid.prototype.rangeSelectRowTo = null;
+
     Grid.prototype.focusOnCell = function (rowNumber, cellNumber) {
       if (rowNumber < 0 || cellNumber < 0) {
         throw "index out of bound";
@@ -12,10 +15,10 @@ customElements.whenDefined("vaadin-grid").then(() => {
        **/
       if (rowNumber > this._effectiveSize) {
         const that = this;
-        setTimeout( () => {
+        setTimeout(() => {
           that.scrollToIndex(rowNumber);
           that._startToFocus(rowNumber, cellNumber);
-          }, 200);
+        }, 200);
       } else {
         this._startToFocus(rowNumber, cellNumber);
       }
@@ -26,7 +29,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
       this._rowNumberToFocus = rowNumber;
       this._cellNumberToFocus = cellNumber;
       const row = Array.from(this.$.items.children).filter(
-          (child) => child.index === rowNumber
+        (child) => child.index === rowNumber
       )[0];
       // if row is already
       if (row) {
@@ -37,7 +40,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
           throw "index out of bound";
         }
       }
-    }
+    };
 
     Grid.prototype._focus = function () {
       const rowNumber = this._rowNumberToFocus;
@@ -133,7 +136,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
      * https://github.com/vaadin/vaadin-grid/issues/2055
      * Remove this once the issue is released
      */
-    Grid.prototype._loadPage = function(page, cache) {
+    Grid.prototype._loadPage = function (page, cache) {
       // make sure same page isn't requested multiple times.
       if (!cache.pendingRequests[page] && this.dataProvider) {
         this._setLoading(true);
@@ -143,7 +146,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
           pageSize: this.pageSize,
           sortOrders: this._mapSorters(),
           filters: this._mapFilters(),
-          parentItem: cache.parentItem
+          parentItem: cache.parentItem,
         };
 
         this.dataProvider(params, (items, size) => {
@@ -155,7 +158,9 @@ customElements.whenDefined("vaadin-grid").then(() => {
             }
           }
 
-          const currentItems = Array.from(this.$.items.children).map(row => row._item);
+          const currentItems = Array.from(this.$.items.children).map(
+            (row) => row._item
+          );
 
           // Populate the cache with new items
           items.forEach((item, itemsIndex) => {
@@ -176,69 +181,57 @@ customElements.whenDefined("vaadin-grid").then(() => {
           this._effectiveSize = this._cache.effectiveSize;
 
           Array.from(this.$.items.children)
-              .filter(row => !row.hidden)
-              .forEach(row => {
-                const cachedItem = this._cache.getItemForIndex(row.index);
-                if (cachedItem) { // fix to ensure that the children are loaded - See here
-                  this._getItem(row.index, row);
-                }
-              });
+            .filter((row) => !row.hidden)
+            .forEach((row) => {
+              const cachedItem = this._cache.getItemForIndex(row.index);
+              if (cachedItem) {
+                // fix to ensure that the children are loaded - See here
+                this._getItem(row.index, row);
+              }
+            });
 
           this._increasePoolIfNeeded(0);
 
           this.__itemsReceived();
         });
       }
-    }
+    };
     /** TEMPORARY FIX **/
 
     const oldClickHandler = Grid.prototype._onClick;
     Grid.prototype._onClick = function _click(e) {
       const boundOldClickHandler = oldClickHandler.bind(this);
       boundOldClickHandler(e);
-      const eventTarget = e.target;
-      if (
-        e.shiftKey &&
-        eventTarget.nodeName.toLowerCase() === "vaadin-checkbox"
-      ) {
-        // the click happened on a checkbox
-        if (eventTarget.checked) {
-          const orderedSelectedKeys = this.selectedItems
-            .map((i) => parseInt(i.key))
-            .sort((a, b) => a - b);
-          const selectedKey = this.selectedItems[this.selectedItems.length - 1]
-            .key;
-          const selectedKeyIndex = orderedSelectedKeys.indexOf(
-            parseInt(selectedKey)
-          );
-          if (selectedKeyIndex > 0) {
-            const previousItemKey = orderedSelectedKeys[selectedKeyIndex - 1];
-            const selectedItemKey = parseInt(selectedKey);
+      const tr = e.path.find((p) => p.nodeName === "TR");
+      if (tr) {
+        const item = tr._item;
+        const index = tr.index;
 
-            let maxInspected = previousItemKey;
-            let scrollTargetIndex = 0;
-            debugger
-            console.log('gonna select', previousItemKey, selectedItemKey)
-            while (maxInspected < selectedItemKey) {
-              this.scrollToIndex(maxInspected);
-              Array.from(this.$.items.children).forEach((row) => {
-                const rowKey = parseInt(row._item.key);
-                if (rowKey < selectedItemKey && rowKey > previousItemKey) {
-                  this.selectItem(row._item);
-                  scrollTargetIndex = row.index;
-                }
-              });
-              maxInspected = parseInt(Array.from(this.$.items.children).sort((a, b) => parseInt(a._item.key) - parseInt(b._item.key))[this.$.items.children.length - 1]._item.key);
-            }
-            this.scrollToIndex(scrollTargetIndex);
-            // Array.from(this.$.items.children).forEach((row) => {
-            //   const rowItem = row._item;
-            //   console.log(rowItem);
-            //   const itemKey = parseInt(row._item.key);
-            //   if (itemKey < selectedItemKey && itemKey > previousItemKey) {
-            //     this.selectItem(rowItem);
-            //   }
-            // });
+        if (this.selectedItems.some((i) => i.key === item.key)) {
+          this.deselectItem(tr._item);
+        } else {
+          this.selectItem(tr._item);
+
+          if (!e.shiftKey) {
+            this.rangeSelectRowFrom = index;
+            // set the start index
+          } else if (e.shiftKey && this.rangeSelectRowFrom) {
+            // set the target index
+            this.rangeSelectRowTo = index;
+
+            const e = new CustomEvent("range-selection", {
+              detail: {
+                fromIndex: this.rangeSelectRowFrom,
+                toIndex: this.rangeSelectRowTo,
+              },
+              composed: true,
+              cancelable: false,
+              bubbles: true,
+            });
+            this.dispatchEvent(e);
+
+            this.rangeSelectRowFrom = null;
+            this.rangeSelectRowTo = null;
           }
         }
       }
