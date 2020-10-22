@@ -111,7 +111,15 @@ public class SelectionGrid<T> extends Grid<T> {
     private void selectRange(int fromIndex, int toIndex) {
         GridSelectionModel<T> model = getSelectionModel();
         if (model instanceof GridMultiSelectionModel) {
-            asMultiSelect().select(getItemsInOrder().subList(Math.min(fromIndex, toIndex), Math.max(fromIndex, toIndex) + 1));
+            DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+            Method fetchFromProvider;
+            try {
+                fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
+                fetchFromProvider.setAccessible(true);
+                asMultiSelect().select(((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
+                    toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toList()));
+            } catch (Exception ignored) {
+            }
         }
     }
 
