@@ -196,7 +196,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
         });
       }
     };
-    /** TEMPORARY FIX **/
+    /** END TEMPORARY FIX **/
 
     const oldClickHandler = Grid.prototype._onClick;
     Grid.prototype._onClick = function _click(e) {
@@ -207,33 +207,37 @@ customElements.whenDefined("vaadin-grid").then(() => {
         const item = tr._item;
         const index = tr.index;
 
-        if (this.selectedItems.some((i) => i.key === item.key)) {
-          this.deselectItem(tr._item);
+        if (this.selectedItems && this.selectedItems.some((i) => i.key === item.key)) {
+          if (this.$connector) {
+            this.$connector.doDeselection([tr._item], true);
+          } else {
+            this.deselectItem(tr._item);
+          }
         } else {
-          this.selectItem(tr._item);
-
-          if (!e.shiftKey) {
-            this.rangeSelectRowFrom = index;
-            // set the start index
-          } else if (e.shiftKey && this.rangeSelectRowFrom) {
+          if (e.shiftKey && this.rangeSelectRowFrom) {
             // set the target index
-            this.rangeSelectRowTo = index;
-
-            const e = new CustomEvent("range-selection", {
+            /*const e = new CustomEvent("range-selection", {
               detail: {
                 fromIndex: this.rangeSelectRowFrom,
-                toIndex: this.rangeSelectRowTo,
+                toIndex: index,
               },
               composed: true,
               cancelable: false,
               bubbles: true,
             });
-            this.dispatchEvent(e);
-
-            this.rangeSelectRowFrom = null;
-            this.rangeSelectRowTo = null;
+            this.dispatchEvent(e);*/
+            if (this.$server) {
+              this.$server.selectRange(this.rangeSelectRowFrom, index);
+            }
+          } else {
+            if (this.$connector) {
+              this.$connector.doSelection([tr._item], true);
+            } else {
+              this.selectItem(tr._item);
+            }
           }
         }
+        this.rangeSelectRowFrom = index;
       }
     };
   }

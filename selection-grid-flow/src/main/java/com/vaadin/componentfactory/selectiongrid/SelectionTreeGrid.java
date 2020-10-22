@@ -17,7 +17,10 @@ package com.vaadin.componentfactory.selectiongrid;
  * #L%
  */
 
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
+import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.KeyMapper;
@@ -36,6 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+@CssImport(value = "./styles/grid.css", themeFor = "vaadin-grid")
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /// TEMPORARY FIX FOR https://github.com/vaadin/vaadin-grid/issues/1820
@@ -183,5 +187,16 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             ignored.printStackTrace();
         }
         throw new IllegalArgumentException("getInternalId");
+    }
+
+    @ClientCallable
+    private void selectRange(int fromIndex, int toIndex) {
+
+    }
+
+    @Override
+    protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
+        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+        super.setSelectionModel(model, selectionMode);
     }
 }

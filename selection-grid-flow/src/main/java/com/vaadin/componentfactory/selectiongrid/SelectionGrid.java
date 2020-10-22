@@ -17,16 +17,23 @@ package com.vaadin.componentfactory.selectiongrid;
  * #L%
  */
 
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.GridMultiSelectionModel;
+import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.data.provider.DataCommunicator;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.ListDataProvider;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@CssImport(value = "./styles/grid.css", themeFor = "vaadin-grid")
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionGrid<T> extends Grid<T> {
 
@@ -60,6 +67,10 @@ public class SelectionGrid<T> extends Grid<T> {
 
 
     private int getIndexForItem(T item) {
+        return getItemsInOrder().indexOf(item);
+    }
+
+    private List<T> getItemsInOrder() {
         DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
         Method fetchFromProvider;
         Method getDataProviderSize;
@@ -69,11 +80,10 @@ public class SelectionGrid<T> extends Grid<T> {
             fetchFromProvider.setAccessible(true);
             getDataProviderSize.setAccessible(true);
             int size = (Integer) getDataProviderSize.invoke(dataCommunicator);
-            return ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, 0, size)).collect(Collectors.toList())
-                .indexOf(item);
+            return ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, 0, size)).collect(Collectors.toList());
         } catch (Exception ignored) {
         }
-        return -1;
+        return new ArrayList<>();
     }
 
     private String getColumnInternalId(Column<T> column) {
@@ -97,4 +107,17 @@ public class SelectionGrid<T> extends Grid<T> {
         super.setDataProvider(dataProvider);
     }
 
+    @ClientCallable
+    private void selectRange(int fromIndex, int toIndex) {
+        GridSelectionModel<T> model = getSelectionModel();
+        if (model instanceof GridMultiSelectionModel) {
+            asMultiSelect().select(getItemsInOrder().subList(Math.min(fromIndex, toIndex), Math.max(fromIndex, toIndex) + 1));
+        }
+    }
+
+    @Override
+    protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
+        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+        super.setSelectionModel(model, selectionMode);
+    }
 }
