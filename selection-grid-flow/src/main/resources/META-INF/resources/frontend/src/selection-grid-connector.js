@@ -240,5 +240,24 @@ customElements.whenDefined("vaadin-grid").then(() => {
         this.rangeSelectRowFrom = index;
       }
     };
+
+    const old_onNavigationKeyDown = Grid.prototype._onNavigationKeyDown;
+    Grid.prototype._onNavigationKeyDown = function _onNavigationKeyDownOverridden(e, key) {
+      old_onNavigationKeyDown(e,key);
+      if (e.shiftKey && (key === 'ArrowDown' || key === 'ArrowUp')) {
+          console.log("select" +  this._focusedItemIndex);
+          const row = Array.from(this.$.items.children).filter(
+            (child) => child.index === this._focusedItemIndex
+        )[0];
+          if (row) {
+            if (this.$connector) {
+              debugger;
+              this.$connector.doSelection([row], true);
+            } else {
+              this.selectItem(row);
+            }
+          }
+      }
+    }
   }
 });
