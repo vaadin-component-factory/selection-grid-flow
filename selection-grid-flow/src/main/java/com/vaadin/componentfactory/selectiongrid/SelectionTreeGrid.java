@@ -17,7 +17,10 @@ package com.vaadin.componentfactory.selectiongrid;
  * #L%
  */
 
+import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
+import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.KeyMapper;
@@ -26,6 +29,7 @@ import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.internal.JsonUtils;
+import com.vaadin.flow.internal.Range;
 import elemental.json.Json;
 import elemental.json.JsonObject;
 
@@ -35,7 +39,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+@CssImport(value = "./styles/grid.css", themeFor = "vaadin-grid")
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /// TEMPORARY FIX FOR https://github.com/vaadin/vaadin-grid/issues/1820
@@ -141,28 +147,13 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         }
         if (!ancestors.isEmpty()) {
             expand(ancestors);
-            /*for (int i = ancestors.size() - 1; i >= 0; i--) {
-                getElement().executeJs("$0.refreshExpanded($1)", this.getElement(), getIndexForItem(ancestors.get(i)));
-            }*/
-
         }
         return ancestors;
     }
 
     private int getIndexForItem(T item) {
         HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-        Method getHierarchyMapper ;
-        try {
-            getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
-            getHierarchyMapper.setAccessible(true);
-            HierarchyMapper<T, ?> mapper = (HierarchyMapper<T, ?>) getHierarchyMapper.invoke(dataCommunicator);
-            int rowIndex = mapper.getIndex(item);
-            if (rowIndex > 0) {
-                return rowIndex;
-            }
-        } catch (Exception ignored) {
-        }
-        return 0;
+        return dataCommunicator.getIndex(item);
     }
 
     @Override
@@ -183,5 +174,27 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             ignored.printStackTrace();
         }
         throw new IllegalArgumentException("getInternalId");
+    }
+
+    @ClientCallable
+    private void selectRange(int fromIndex, int toIndex) {
+        int from = Math.min(fromIndex, toIndex);
+        int to = Math.max(fromIndex, toIndex);
+
+        HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+        Method getHierarchyMapper ;
+        try {
+            getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
+            getHierarchyMapper.setAccessible(true);
+            HierarchyMapper<T, ?> mapper = (HierarchyMapper<T, ?>) getHierarchyMapper.invoke(dataCommunicator);
+            asMultiSelect().select((mapper.fetchRootItems(Range.withLength(from, to - from + 1))).collect(Collectors.toSet()));
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Override
+    protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
+        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+        super.setSelectionModel(model, selectionMode);
     }
 }
