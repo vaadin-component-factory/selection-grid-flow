@@ -197,10 +197,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
     };
     /** END TEMPORARY FIX **/
 
-    const oldClickHandler = Grid.prototype._onClick;
-    Grid.prototype._onClick = function _click(e) {
-      const boundOldClickHandler = oldClickHandler.bind(this);
-      boundOldClickHandler(e);
+    Grid.prototype._selectionGridSelectRow = function (e) {
       const tr = e.path.find((p) => p.nodeName === "TR");
       if (tr) {
         const item = tr._item;
@@ -208,36 +205,33 @@ customElements.whenDefined("vaadin-grid").then(() => {
 
         if (this.selectedItems && this.selectedItems.some((i) => i.key === item.key)) {
           if (this.$connector) {
-            this.$connector.doDeselection([tr._item], true);
+            this.$connector.doDeselection([item], true);
           } else {
-            this.deselectItem(tr._item);
+            this.deselectItem(item);
           }
         } else {
           if (e.shiftKey && this.rangeSelectRowFrom >= 0) {
-            // set the target index
-            /*const e = new CustomEvent("range-selection", {
-              detail: {
-                fromIndex: this.rangeSelectRowFrom,
-                toIndex: index,
-              },
-              composed: true,
-              cancelable: false,
-              bubbles: true,
-            });
-            this.dispatchEvent(e);*/
             if (this.$server) {
               this.$server.selectRange(this.rangeSelectRowFrom, index);
             }
           } else {
             if (this.$connector) {
-              this.$connector.doSelection([tr._item], true);
+              this.$connector.doSelection([item], true);
             } else {
-              this.selectItem(tr._item);
+              this.selectItem(item);
             }
           }
         }
         this.rangeSelectRowFrom = index;
       }
+    }
+
+    const oldClickHandler = Grid.prototype._onClick;
+    Grid.prototype._onClick = function _click(e) {
+      const boundOldClickHandler = oldClickHandler.bind(this);
+      boundOldClickHandler(e);
+
+      this._selectionGridSelectRow(e);
     };
 
     Grid.prototype.old_onNavigationKeyDown = Grid.prototype._onNavigationKeyDown;
@@ -259,6 +253,12 @@ customElements.whenDefined("vaadin-grid").then(() => {
           }
         }
       }
+    }
+
+    Grid.prototype.old_onSpaceKeyDown = Grid.prototype._onSpaceKeyDown;
+    Grid.prototype._onSpaceKeyDown = function _onSpaceKeyDownOverriden(e) {
+      this.old_onSpaceKeyDown(e);
+      this._selectionGridSelectRow(e);
     }
   }
 });
