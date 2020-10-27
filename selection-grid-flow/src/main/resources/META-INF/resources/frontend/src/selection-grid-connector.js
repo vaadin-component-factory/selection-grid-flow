@@ -263,7 +263,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
     Grid.prototype._onNavigationKeyDown = function _onNavigationKeyDownOverridden(e, key) {
       this.old_onNavigationKeyDown(e,key);
       const ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey;
-      if (e.shiftKey && !ctrlKey) {
+      if (e.shiftKey || !ctrlKey) {
         // select on shift down on shift up
         if (key === 'ArrowDown' || key === 'ArrowUp') {
           const row = Array.from(this.$.items.children).filter(
