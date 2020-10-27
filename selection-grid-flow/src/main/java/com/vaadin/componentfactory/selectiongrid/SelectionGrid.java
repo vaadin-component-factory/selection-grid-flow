@@ -29,7 +29,9 @@ import com.vaadin.flow.data.provider.ListDataProvider;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,6 +109,12 @@ public class SelectionGrid<T> extends Grid<T> {
         super.setDataProvider(dataProvider);
     }
 
+    /**
+     * Select the range and keep the other items selected
+     *
+     * @param fromIndex
+     * @param toIndex
+     */
     @ClientCallable
     private void selectRange(int fromIndex, int toIndex) {
         GridSelectionModel<T> model = getSelectionModel();
@@ -119,6 +127,31 @@ public class SelectionGrid<T> extends Grid<T> {
                 asMultiSelect().select(((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
                     toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toList()));
             } catch (Exception ignored) {
+            }
+        }
+    }
+
+    /**
+     * Select the range and deselect the other items
+     * @param fromIndex
+     * @param toIndex
+     */
+    @ClientCallable
+    private void selectRangeOnly(int fromIndex, int toIndex) {
+        GridSelectionModel<T> model = getSelectionModel();
+        if (model instanceof GridMultiSelectionModel) {
+            DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+            Method fetchFromProvider;
+            try {
+                fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
+                fetchFromProvider.setAccessible(true);
+                Set<T> newSelectedItems = ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
+                    toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toSet());
+                HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
+                oldSelectedItems.removeAll(newSelectedItems);
+                asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
+            } catch (Exception ignored) {
+                ignored.printStackTrace();
             }
         }
     }
