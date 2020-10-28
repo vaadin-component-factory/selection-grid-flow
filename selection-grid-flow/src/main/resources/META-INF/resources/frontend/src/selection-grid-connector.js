@@ -198,7 +198,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
     /** END TEMPORARY FIX **/
 
     Grid.prototype._selectionGridSelectRow = function (e) {
-      const tr = e.path.find((p) => p.nodeName === "TR");
+      const tr = e.composedPath().find((p) => p.nodeName === "TR");
       if (tr) {
         const item = tr._item;
         const index = tr.index;
@@ -279,7 +279,7 @@ customElements.whenDefined("vaadin-grid").then(() => {
     Grid.prototype.old_onSpaceKeyDown = Grid.prototype._onSpaceKeyDown;
     Grid.prototype._onSpaceKeyDown = function _onSpaceKeyDownOverriden(e) {
       this.old_onSpaceKeyDown(e);
-      const tr = e.path.find((p) => p.nodeName === "TR");
+      const tr = e.composedPath().find((p) => p.nodeName === "TR");
       if (tr) {
         const item = tr._item;
         const index = tr.index;
