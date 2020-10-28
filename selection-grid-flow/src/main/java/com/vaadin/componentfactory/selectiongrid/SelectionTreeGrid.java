@@ -20,6 +20,7 @@ package com.vaadin.componentfactory.selectiongrid;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
+import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
@@ -28,6 +29,9 @@ import com.vaadin.flow.data.provider.hierarchy.HierarchicalArrayUpdater;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.renderer.TemplateRenderer;
+import com.vaadin.flow.function.SerializableComparator;
+import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.internal.JsonUtils;
 import com.vaadin.flow.internal.Range;
 import elemental.json.Json;
@@ -37,6 +41,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -187,8 +192,34 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
             getHierarchyMapper.setAccessible(true);
             HierarchyMapper<T, ?> mapper = (HierarchyMapper<T, ?>) getHierarchyMapper.invoke(dataCommunicator);
-            asMultiSelect().select((mapper.fetchRootItems(Range.withLength(from, to - from + 1))).collect(Collectors.toSet()));
+            asMultiSelect().select((mapper.fetchHierarchyItems(Range.withLength(from, to - from + 1))).collect(Collectors.toSet()));
         } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * Select the range and deselect the other items
+     * @param fromIndex
+     * @param toIndex
+     */
+    @ClientCallable
+    private void selectRangeOnly(int fromIndex, int toIndex) {
+        GridSelectionModel<T> model = getSelectionModel();
+        if (model instanceof GridMultiSelectionModel) {
+            int from = Math.min(fromIndex, toIndex);
+            int to = Math.max(fromIndex, toIndex);
+            HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+            Method getHierarchyMapper ;
+            try {
+                getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
+                getHierarchyMapper.setAccessible(true);
+                HierarchyMapper<T, ?> mapper = (HierarchyMapper<T, ?>) getHierarchyMapper.invoke(dataCommunicator);
+                Set<T> newSelectedItems = (mapper.fetchHierarchyItems(Range.withLength(from, to - from + 1))).collect(Collectors.toSet());
+                HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
+                oldSelectedItems.removeAll(newSelectedItems);
+                asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -196,5 +227,23 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
         getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
         super.setSelectionModel(model, selectionMode);
+    }
+
+    @Override
+    public Column<T> addHierarchyColumn(ValueProvider<T, ?> valueProvider) {
+        Column<T> column = addColumn(TemplateRenderer
+            .<T> of("<vaadin-grid-tree-toggle "
+                + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
+                + "</vaadin-grid-tree-toggle>[[item.name]]")
+            .withProperty("leaf",
+                item -> !getDataCommunicator().hasChildren(item))
+            .withProperty("name",
+                value -> String.valueOf(valueProvider.apply(value))));
+        final SerializableComparator<T> comparator =
+            (a, b) -> compareMaybeComparables(valueProvider.apply(a),
+                valueProvider.apply(b));
+        column.setComparator(comparator);
+
+        return column;
     }
 }

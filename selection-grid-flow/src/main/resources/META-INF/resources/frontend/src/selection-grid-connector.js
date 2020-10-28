@@ -198,15 +198,21 @@ customElements.whenDefined("vaadin-grid").then(() => {
     /** END TEMPORARY FIX **/
 
     Grid.prototype._selectionGridSelectRow = function (e) {
-      const tr = e.composedPath().find((p) => p.nodeName === "TR");
-      if (tr) {
-        const item = tr._item;
-        const index = tr.index;
+      const vaadinTreeToggle = e.composedPath().find((p) => p.nodeName === "VAADIN-GRID-TREE-TOGGLE");
+      if (vaadinTreeToggle) {
+        // don't select, it will expand/collapse the node
+        // reset the last item
+        this.rangeSelectRowFrom = -1;
+      } else {
+        const tr = e.composedPath().find((p) => p.nodeName === "TR");
+        if (tr) {
+          const item = tr._item;
+          const index = tr.index;
 
-        this._selectionGridSelectRowWithItem(e, item, index);
+          this._selectionGridSelectRowWithItem(e, item, index);
+        }
       }
     }
-
     Grid.prototype._selectionGridSelectRowWithItem = function (e, item, index) {
       const ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey; //(this._ios)?e.metaKey:e.ctrlKey;
       // if click select only this row

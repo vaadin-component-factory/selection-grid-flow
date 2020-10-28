@@ -140,13 +140,14 @@ public class SelectionGrid<T> extends Grid<T> {
     private void selectRangeOnly(int fromIndex, int toIndex) {
         GridSelectionModel<T> model = getSelectionModel();
         if (model instanceof GridMultiSelectionModel) {
+            int from = Math.min(fromIndex, toIndex);
+            int to = Math.max(fromIndex, toIndex);
             DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
             Method fetchFromProvider;
             try {
                 fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
                 fetchFromProvider.setAccessible(true);
-                Set<T> newSelectedItems = ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
-                    toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toSet());
+                Set<T> newSelectedItems = ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, from, to - from + 1)).collect(Collectors.toSet());
                 HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
                 oldSelectedItems.removeAll(newSelectedItems);
                 asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
