@@ -18,6 +18,7 @@ package com.vaadin.componentfactory.selectiongrid;
  */
 
 import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
@@ -46,7 +47,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@CssImport(value = "./styles/grid.css", themeFor = "vaadin-grid")
+@Tag("vaadin-selection-grid")
+@CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
 @JsModule("./src/selection-grid-connector.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /// TEMPORARY FIX FOR https://github.com/vaadin/vaadin-grid/issues/1820

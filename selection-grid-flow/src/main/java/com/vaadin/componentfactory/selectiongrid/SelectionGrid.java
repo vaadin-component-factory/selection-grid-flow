@@ -18,6 +18,7 @@ package com.vaadin.componentfactory.selectiongrid;
  */
 
 import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
@@ -35,8 +36,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@CssImport(value = "./styles/grid.css", themeFor = "vaadin-grid")
-@JsModule("./src/selection-grid-connector.js")
+@Tag("vaadin-selection-grid")
+@CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
+@JsModule("./src/vcf-selection-grid.js")
 public class SelectionGrid<T> extends Grid<T> {
 
     @Override
