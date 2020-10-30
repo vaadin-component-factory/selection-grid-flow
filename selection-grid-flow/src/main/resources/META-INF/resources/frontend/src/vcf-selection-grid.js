@@ -40,10 +40,16 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
         this._loadPage = this._loadPageOverriden;
 
         const old_onNavigationKeyDown = this._onNavigationKeyDown.bind(this);
-        this._onNavigationKeyDown = this._onNavigationKeyDownOverridden;
+        this._onNavigationKeyDown = function _keyDown(e) {
+            old_onNavigationKeyDown(e);
+            this._onNavigationKeyDownOverridden(e);
+        };
 
         const old_onSpaceKeyDown = this._onSpaceKeyDown.bind(this);
-        this._onSpaceKeyDown = this._onSpaceKeyDownOverriden;
+        this._onSpaceKeyDown = function _keyDown(e) {
+            old_onSpaceKeyDown(e);
+            this._onSpaceKeyDownOverriden(e);
+        };
 
         const old_onClick = this._onClick.bind(this);
         this._onClick = function _click(e) {

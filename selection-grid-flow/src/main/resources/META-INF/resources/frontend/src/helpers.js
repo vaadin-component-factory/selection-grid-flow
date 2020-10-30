@@ -1,7 +1,6 @@
 /* eslint-disable no-invalid-this */
 
 export function _onNavigationKeyDownOverridden(e, key) {
-    this.old_onNavigationKeyDown(e,key);
     const ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey;
     if (e.shiftKey || !ctrlKey) {
         // select on shift down on shift up
@@ -17,7 +16,6 @@ export function _onNavigationKeyDownOverridden(e, key) {
 }
 
 export function _onSpaceKeyDownOverriden(e) {
-    this.old_onSpaceKeyDown(e);
     const tr = e.composedPath().find((p) => p.nodeName === "TR");
     if (tr) {
         const item = tr._item;
