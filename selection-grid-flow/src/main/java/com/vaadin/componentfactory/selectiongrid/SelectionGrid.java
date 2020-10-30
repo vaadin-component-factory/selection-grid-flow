@@ -18,6 +18,7 @@ package com.vaadin.componentfactory.selectiongrid;
  */
 
 import com.vaadin.flow.component.ClientCallable;
+import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
@@ -35,8 +36,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@CssImport(value = "./styles/grid.css", themeFor = "vaadin-grid")
-@JsModule("./src/selection-grid-connector.js")
+@Tag("vaadin-selection-grid")
+@CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
+@JsModule("./src/vcf-selection-grid.js")
+@JsModule("./src/selection-grid.js")
 public class SelectionGrid<T> extends Grid<T> {
 
     @Override
@@ -140,13 +143,14 @@ public class SelectionGrid<T> extends Grid<T> {
     private void selectRangeOnly(int fromIndex, int toIndex) {
         GridSelectionModel<T> model = getSelectionModel();
         if (model instanceof GridMultiSelectionModel) {
+            int from = Math.min(fromIndex, toIndex);
+            int to = Math.max(fromIndex, toIndex);
             DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
             Method fetchFromProvider;
             try {
                 fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
                 fetchFromProvider.setAccessible(true);
-                Set<T> newSelectedItems = ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
-                    toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toSet());
+                Set<T> newSelectedItems = ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, from, to - from + 1)).collect(Collectors.toSet());
                 HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
                 oldSelectedItems.removeAll(newSelectedItems);
                 asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
