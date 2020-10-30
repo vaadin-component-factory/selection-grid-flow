@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 @Tag("vaadin-selection-grid")
 @CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
 @JsModule("./src/vcf-selection-grid.js")
+@JsModule("./src/selection-grid.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /// TEMPORARY FIX FOR https://github.com/vaadin/vaadin-grid/issues/1820
     /// Remove this once this issue is closed and released

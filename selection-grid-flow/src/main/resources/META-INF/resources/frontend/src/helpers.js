@@ -1,42 +1,5 @@
 /* eslint-disable no-invalid-this */
 
-export function _onNavigationKeyDownOverridden(e, key) {
-    const ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey;
-    if (e.shiftKey || !ctrlKey) {
-        // select on shift down on shift up
-        if (key === 'ArrowDown' || key === 'ArrowUp') {
-            const row = Array.from(this.$.items.children).filter(
-                (child) => child.index === this._focusedItemIndex
-            )[0];
-            if (row) {
-                this._selectionGridSelectRowWithItem(e, row._item, row.index);
-            }
-        }
-    } // else do nothing
-}
-
-export function _onSpaceKeyDownOverriden(e) {
-    const tr = e.composedPath().find((p) => p.nodeName === "TR");
-    if (tr) {
-        const item = tr._item;
-        const index = tr.index;
-        if (this.selectedItems && this.selectedItems.some((i) => i.key === item.key)) {
-            if (this.$connector) {
-                this.$connector.doDeselection([item], true);
-            } else {
-                this.deselectItem(item);
-            }
-        } else {
-            if (this.$server) {
-                this.$server.selectRangeOnly(index, index);
-            } else {
-                this.selectedItems = [];
-                this.selectItem(item);
-            }
-        }
-    }
-}
-
 export function _selectionGridSelectRow(e) {
     const vaadinTreeToggle = e.composedPath().find((p) => p.nodeName === "VAADIN-GRID-TREE-TOGGLE");
     if (vaadinTreeToggle) {

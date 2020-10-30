@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 @Tag("vaadin-selection-grid")
 @CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
 @JsModule("./src/vcf-selection-grid.js")
+@JsModule("./src/selection-grid.js")
 public class SelectionGrid<T> extends Grid<T> {
 
     @Override

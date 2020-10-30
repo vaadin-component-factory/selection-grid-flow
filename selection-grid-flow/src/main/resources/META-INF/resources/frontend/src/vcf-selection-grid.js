@@ -6,8 +6,6 @@ import { GridElement } from  '@vaadin/vaadin-grid/src/vaadin-grid.js';
 import {
     _getItemOverriden,
     _loadPageOverriden,
-    _onNavigationKeyDownOverridden,
-    _onSpaceKeyDownOverriden,
     _selectionGridSelectRow,
     _selectionGridSelectRowWithItem
 } from './helpers';
@@ -19,8 +17,6 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
 
         this._getItemOverriden = _getItemOverriden.bind(this);
         this._loadPageOverriden = _loadPageOverriden.bind(this);
-        this._onNavigationKeyDownOverridden = _onNavigationKeyDownOverridden.bind(this);
-        this._onSpaceKeyDownOverriden = _onSpaceKeyDownOverriden.bind(this);
         this._selectionGridSelectRow = _selectionGridSelectRow.bind(this);
         this._selectionGridSelectRowWithItem = _selectionGridSelectRowWithItem.bind(this);
     }
@@ -38,26 +34,6 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
         super.ready();
         this._getItem = this._getItemOverriden;
         this._loadPage = this._loadPageOverriden;
-
-        const old_onNavigationKeyDown = this._onNavigationKeyDown.bind(this);
-        this._onNavigationKeyDown = function _keyDown(e) {
-            old_onNavigationKeyDown(e);
-            this._onNavigationKeyDownOverridden(e);
-        };
-
-        const old_onSpaceKeyDown = this._onSpaceKeyDown.bind(this);
-        this._onSpaceKeyDown = function _keyDown(e) {
-            old_onSpaceKeyDown(e);
-            this._onSpaceKeyDownOverriden(e);
-        };
-
-        const old_onClick = this._onClick.bind(this);
-        this._onClick = function _click(e) {
-            old_onClick(e);
-            this._selectionGridSelectRow(e);
-        };
-
-
     }
 
     connectedCallback() {
