@@ -41,3 +41,4 @@ jobs:
         target: webapps/
         # scp file list
         source: ${{ secrets.DEMO_NAME }}.war
+        fingerprint: ${{ secrets.APP_FI_SHA256 }}
