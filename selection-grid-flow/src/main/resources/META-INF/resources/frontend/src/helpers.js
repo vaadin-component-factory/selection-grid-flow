@@ -158,7 +158,7 @@ export function _getItemOverriden(index, el) {
         this._loadPage(this._getPageForIndex(scaledIndex), cache);
     }
     /** focus when get item if there is an item to focus **/
-    if (this._rowNumberToFocus > 0) {
+    if (this._rowNumberToFocus > -1) {
         if (index === this._rowNumberToFocus) {
             const row = Array.from(this.$.items.children).filter(
                 (child) => child.index === this._rowNumberToFocus
