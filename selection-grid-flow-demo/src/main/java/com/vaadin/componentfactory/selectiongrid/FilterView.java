@@ -5,6 +5,7 @@ import com.vaadin.componentfactory.selectiongrid.service.PersonService;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.ListDataProvider;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 
@@ -19,6 +20,7 @@ public class FilterView extends Div {
     private TextField filterText = new TextField("Filter");
     private Grid<Person> grid = new SelectionGrid<>();
     private List<Person> personList = getItems();
+    private ListDataProvider<Person> dataProvider;
 
     public FilterView() {
         Div messageDiv = new Div();
@@ -26,7 +28,8 @@ public class FilterView extends Div {
         filterText.setClearButtonVisible(true);
         filterText.setValueChangeMode(ValueChangeMode.EAGER);
         filterText.addValueChangeListener(e -> updateList(e.getValue()));
-        grid.setItems(personList);
+        dataProvider = new ListDataProvider<>(personList);
+        grid.setDataProvider(dataProvider);
 
         grid.addColumn(Person::getFirstName).setHeader("First Name");
         grid.addColumn(Person::getAge).setHeader("Age");
@@ -45,9 +48,9 @@ public class FilterView extends Div {
     }
     public void updateList(String filter) {
         if (filter != null && !filter.isEmpty()) {
-            grid.setItems(personList.stream().filter(person -> person.getFirstName().contains(filter)));
+            dataProvider.setFilter(person -> person.getFirstName().contains(filter));
         } else {
-            grid.setItems(personList);
+            dataProvider.clearFilters();
         }
     }
     private List<Person> getItems() {
