@@ -6,7 +6,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
 
     <name>Selection Grid</name>
@@ -15,14 +15,8 @@
     <inceptionYear>2020</inceptionYear>
     <organization>
         <name>Vaadin Ltd</name>
-        <url>http://vaadin.com/</url>
+        <url>https://vaadin.com/</url>
     </organization>
-    <licenses>
-        <license>
-            <name>CVALv3</name>
-            <url>https://vaadin.com/license/cval-3</url>
-        </license>
-    </licenses>
 
     <properties>
         <vaadin.version>14.3.8</vaadin.version>
@@ -115,13 +109,13 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.8</version>
+                <version>2.0.0</version>
                 <!--  Use `mvn license:update-file-header` to fix header problems -->
                 <configuration>
-                    <licenseName>cval3</licenseName>
-                    <licenseResolver>${project.baseUri}src/license</licenseResolver>
+                    <licenseName>apache_v2</licenseName>
                     <includes>
                         <include>**/main/**/*.java</include>
+                        <include>**/main/**/*.js</include>
                     </includes>
                     <failOnMissingHeader>true</failOnMissingHeader>
                     <failOnNotUptodateHeader>true</failOnNotUptodateHeader>

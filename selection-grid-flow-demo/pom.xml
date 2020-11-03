@@ -6,7 +6,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow-demo</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 
     <name>Selection Grid Demo</name>
     <packaging>war</packaging>
@@ -14,14 +14,9 @@
     <inceptionYear>2020</inceptionYear>
     <organization>
         <name>Vaadin Ltd</name>
-        <url>http://vaadin.com/</url>
+        <url>https://vaadin.com/</url>
     </organization>
-    <licenses>
-        <license>
-            <name>CVALv3</name>
-            <url>https://vaadin.com/license/cval-3</url>
-        </license>
-    </licenses>
+
     <properties>
         <vaadin.version>14.3.8</vaadin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -111,7 +106,7 @@
        <dependency>
            <groupId>com.vaadin.componentfactory</groupId>
            <artifactId>selection-grid-flow</artifactId>
-           <version>0.1.0</version>
+           <version>0.2.0</version>
        </dependency>
 
         <dependency>
