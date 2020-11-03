@@ -28,8 +28,6 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.data.provider.DataCommunicator;
-import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.provider.ListDataProvider;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -106,15 +104,6 @@ public class SelectionGrid<T> extends Grid<T> {
         throw new IllegalArgumentException("getInternalId");
     }
 
-    @Override
-    public void setDataProvider(DataProvider<T, ?> dataProvider) {
-        if (!(dataProvider instanceof ListDataProvider)) {
-            throw new IllegalArgumentException(
-                "SelectionGrid only accepts ListDataProvider.");
-        }
-        super.setDataProvider(dataProvider);
-    }
-
     /**
      * Select the range and keep the other items selected
      *
@@ -133,6 +122,7 @@ public class SelectionGrid<T> extends Grid<T> {
                 asMultiSelect().select(((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
                     toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toList()));
             } catch (Exception ignored) {
+                ignored.printStackTrace();
             }
         }
     }

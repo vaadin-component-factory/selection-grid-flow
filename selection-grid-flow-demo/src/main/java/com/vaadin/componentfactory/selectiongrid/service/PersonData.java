@@ -62,7 +62,7 @@ public class PersonData {
 
     public List<Person> getPersons() {
         if (people.isEmpty()) {
-            for (int i = 91; i <= 199; i++) {
+            for (int i = 0; i <= 100000; i++) {
                 final int age = ages[i % ages.length];
                 people.add(new Person(i, names[i % names.length],
                         surnames[i % surnames.length], age,
