@@ -1,8 +1,5 @@
 # 
 
-## Licence
-
-This component is part of Vaadin Pro. Still, open source you need to have a valid CVAL license in order to use it. Read more at: [vaadin.com/pricing](https://vaadin.com/pricing)
 
 ## Development instructions
 
