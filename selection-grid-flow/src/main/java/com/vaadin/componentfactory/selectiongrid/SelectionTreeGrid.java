@@ -28,23 +28,16 @@ import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.provider.KeyMapper;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalArrayUpdater;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.function.ValueProvider;
-import com.vaadin.flow.internal.JsonUtils;
 import com.vaadin.flow.internal.Range;
-import elemental.json.Json;
-import elemental.json.JsonObject;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,58 +48,6 @@ import java.util.stream.Collectors;
 @JsModule("./src/vcf-selection-grid.js")
 @JsModule("./src/selection-grid.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
-    /// TEMPORARY FIX FOR https://github.com/vaadin/vaadin-grid/issues/1820
-    /// Remove this once this issue is closed and released
-    {
-        // Get fields through reflection
-        final Field hierarchyMapperField;
-        final Field expandedItemIdsField;
-        final Field objectIdKeyMapField;
-        try {
-            objectIdKeyMapField = KeyMapper.class
-                .getDeclaredField("objectIdKeyMap");
-            hierarchyMapperField = HierarchicalDataCommunicator.class
-                .getDeclaredField("mapper");
-            expandedItemIdsField = HierarchyMapper.class
-                .getDeclaredField("expandedItemIds");
-
-            expandedItemIdsField.setAccessible(true);
-            hierarchyMapperField.setAccessible(true);
-            objectIdKeyMapField.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
-
-        // Create attach listener
-        addAttachListener(event -> {
-            try {
-                HierarchicalDataCommunicator<T> communicator = getDataCommunicator();
-                HierarchyMapper mapper = (HierarchyMapper) hierarchyMapperField
-                    .get(communicator);
-                Set<Object> expandedItemIds = (Set<Object>) expandedItemIdsField
-                    .get(mapper);
-                HashMap<Object, String> objectIdKeyMap = (HashMap) objectIdKeyMapField
-                    .get(communicator.getKeyMapper());
-
-                HierarchicalArrayUpdater.HierarchicalUpdate update = (HierarchicalArrayUpdater.HierarchicalUpdate) getArrayUpdater()
-                    .startUpdate(mapper.getRootSize());
-                update.enqueue("$connector.expandItems",
-                    expandedItemIds
-                        .stream()
-                        .map(objectIdKeyMap::get)
-                        .map(key -> {
-                            JsonObject json = Json.createObject();
-                            json.put("key", key);
-                            return json;
-                        }).collect(
-                        JsonUtils.asArray()));
-                event.getUI().beforeClientResponse(this, ctx -> update.commit());
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-    /// END TEMPORARY FIX
     /**
      * Focus on the first cell on the row
      *
