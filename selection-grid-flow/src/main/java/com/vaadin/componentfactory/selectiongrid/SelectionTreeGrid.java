@@ -29,6 +29,7 @@ import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
@@ -48,6 +49,32 @@ import java.util.stream.Collectors;
 @JsModule("./src/vcf-selection-grid.js")
 @JsModule("./src/selection-grid.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
+
+    /**
+     *  @see  TreeGrid#TreeGrid()
+     */
+    public SelectionTreeGrid() {
+        super();
+    }
+
+    /**
+     * @see  TreeGrid#TreeGrid(Class)
+     *
+     * @param beanType beanType – the bean type to use, not null
+     */
+    public SelectionTreeGrid(Class<T> beanType) {
+        super(beanType);
+    }
+
+    /**
+     * @see  TreeGrid#TreeGrid(HierarchicalDataProvider)
+     *
+     * @param dataProvider dataProvider – the data provider, not null
+     */
+    public SelectionTreeGrid(HierarchicalDataProvider<T, ?> dataProvider) {
+        super(dataProvider);
+    }
+
     /**
      * Focus on the first cell on the row
      *
@@ -114,18 +141,6 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             throw new IllegalArgumentException("SelectionTreeGrid only accepts TreeDataProvider.");
         }
         super.setDataProvider(dataProvider);
-    }
-
-    private String getColumnInternalId(Column<T> column) {
-        Method getInternalId ;
-        try {
-            getInternalId = Column.class.getDeclaredMethod("getInternalId");
-            getInternalId.setAccessible(true);
-            return (String) getInternalId.invoke(column);
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
-        }
-        throw new IllegalArgumentException("getInternalId");
     }
 
     @ClientCallable

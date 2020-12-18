@@ -43,6 +43,44 @@ import java.util.stream.Stream;
 @JsModule("./src/selection-grid.js")
 public class SelectionGrid<T> extends Grid<T> {
 
+    /**
+     * @see Grid#Grid()
+     */
+    public SelectionGrid() {
+        super();
+    }
+
+    /**
+     *
+     * @see Grid#Grid(int)
+     *
+     * @param pageSize - the page size. Must be greater than zero.
+     */
+    public SelectionGrid(int pageSize) {
+        super(pageSize);
+    }
+
+    /**
+     *
+     * @see Grid#Grid(Class, boolean)
+     *
+     * @param beanType - the bean type to use, not null
+     * @param autoCreateColumns – when true, columns are created automatically for the properties of the beanType
+     */
+    public SelectionGrid(Class<T> beanType, boolean autoCreateColumns) {
+        super(beanType, autoCreateColumns);
+    }
+
+    /**
+     *
+     * @see Grid#Grid(Class)
+     *
+     * @param beanType - the bean type to use, not null
+     */
+    public SelectionGrid(Class<T> beanType) {
+        super(beanType);
+    }
+
     @Override
     public void scrollToIndex(int rowIndex) {
         super.scrollToIndex(rowIndex);
