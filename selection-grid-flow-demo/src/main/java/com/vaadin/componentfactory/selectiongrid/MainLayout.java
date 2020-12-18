@@ -10,6 +10,7 @@ public class MainLayout extends AppLayout {
     public MainLayout() {
         final DrawerToggle drawerToggle = new DrawerToggle();
         final RouterLink simple = new RouterLink("Selection Grid", SimpleView.class);
+        final RouterLink beanGrid = new RouterLink("Selection Grid with a bean class", BeanGridView.class);
         final RouterLink selectionTreeGrid = new RouterLink("Selection TreeGrid", SelectionTreeGridView.class);
         final RouterLink focus = new RouterLink("Focus Grid view", FocusGridView.class);
         final RouterLink focusHeader = new RouterLink("Multiple headers Grid view", FocusGridMultipleColGroupView.class);
@@ -18,7 +19,7 @@ public class MainLayout extends AppLayout {
         final RouterLink filter = new RouterLink("Filter Grid view", FilterView.class);
         final RouterLink lazy = new RouterLink("Lazy Grid view", LazyDataView.class);
         final RouterLink lazyFocus = new RouterLink("Focus on lazy view", LazyFocusView.class);
-        final VerticalLayout menuLayout = new VerticalLayout(simple, selectionTreeGrid, focus,
+        final VerticalLayout menuLayout = new VerticalLayout(simple, beanGrid, selectionTreeGrid, focus,
             focusHeader, focusTree, focusHTree, filter,
             lazy, lazyFocus);
         addToDrawer(menuLayout);
