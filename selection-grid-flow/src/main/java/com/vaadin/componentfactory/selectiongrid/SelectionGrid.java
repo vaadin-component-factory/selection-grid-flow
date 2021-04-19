@@ -27,6 +27,7 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.data.provider.DataCommunicator;
 
 import java.lang.reflect.Method;
@@ -195,5 +196,28 @@ public class SelectionGrid<T> extends Grid<T> {
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
         getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
         super.setSelectionModel(model, selectionMode);
+    }
+
+
+    /**
+     * Adds theme variants to the component.
+     *
+     * @param variants
+     *            theme variants to add
+     */
+    public void addThemeVariants(SelectionGridVariant... variants) {
+        getThemeNames().addAll(Stream.of(variants)
+                .map(SelectionGridVariant::getVariantName).collect(Collectors.toList()));
+    }
+
+    /**
+     * Removes theme variants from the component.
+     *
+     * @param variants
+     *            theme variants to remove
+     */
+    public void removeThemeVariants(SelectionGridVariant... variants) {
+        getThemeNames().removeAll(Stream.of(variants)
+                .map(SelectionGridVariant::getVariantName).collect(Collectors.toList()));
     }
 }

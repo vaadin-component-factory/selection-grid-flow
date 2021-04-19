@@ -155,6 +155,18 @@ It will expand the parent nodes if they are collapsed, the expand is done node b
     }
 ```
 
+### Allowing text selection
+By default, text selection is disabled to provide a more appealing visual feedback when selecting multiple rows using shift. The downside of this is, that users cannot select text parts of single rows or cells. 
+
+To allow selecting text, simply add the theme variant `SelectionGridVariant.SELECTABLE_TEXT` to your SelectionGrid instance. 
+
+Please note, that the text selection will still be removed, when multiple rows are selected, but, due to technical limitations of event handling there will be a short flickering of selected text.
+
+```
+SelectionGrid<Person> grid = new SelectionGrid<>();
+grid.addThemeVariants(SelectionGridVariant.SELECTABLE_TEXT); // allow text selection inside the grid
+```
+
 ## Limitations
 
 * The dataprovider needs to be a in-memory dataprovider. The selection with shift/ctrl functionality may be extracted from the focus to be used in a lazy dataprovider.
