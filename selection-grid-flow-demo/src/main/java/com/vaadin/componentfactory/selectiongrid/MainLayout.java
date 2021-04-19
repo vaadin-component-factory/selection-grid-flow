@@ -17,10 +17,11 @@ public class MainLayout extends AppLayout {
         final RouterLink focusTree = new RouterLink("Focus TreeGrid view", FocusTreeGridView.class);
         final RouterLink focusHTree = new RouterLink("HorizontalScrolling TreeGrid view", FocusTreeHorizontalScrollGridView.class);
         final RouterLink filter = new RouterLink("Filter Grid view", FilterView.class);
+        final RouterLink selectableText = new RouterLink("Selectable Text", SelectableTextView.class);
         final RouterLink lazy = new RouterLink("Lazy Grid view", LazyDataView.class);
         final RouterLink lazyFocus = new RouterLink("Focus on lazy view", LazyFocusView.class);
         final VerticalLayout menuLayout = new VerticalLayout(simple, beanGrid, selectionTreeGrid, focus,
-            focusHeader, focusTree, focusHTree, filter,
+            focusHeader, focusTree, focusHTree, filter, selectableText,
             lazy, lazyFocus);
         addToDrawer(menuLayout);
         addToNavbar(drawerToggle);

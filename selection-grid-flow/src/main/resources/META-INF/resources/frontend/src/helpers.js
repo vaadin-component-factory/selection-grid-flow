@@ -48,6 +48,17 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
     }
     // if ctrl click
     if (e.shiftKey && this.rangeSelectRowFrom >= 0) {
+        if((this.rangeSelectRowFrom - index) !== 0) { // clear text selection, if multiple rows are selected using shift
+            const sel = window.getSelection ? window.getSelection() : document.selection;
+            if (sel) {
+                if (sel.removeAllRanges) {
+                    sel.removeAllRanges();
+                } else if (sel.empty) {
+                    sel.empty();
+                }
+            }
+        }
+
         if (!ctrlKey) {
             if (this.$server) {
                 this.$server.selectRangeOnly(this.rangeSelectRowFrom, index);

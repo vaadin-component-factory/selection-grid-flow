@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Tag("vaadin-selection-grid")
 @CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
@@ -207,5 +208,27 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         column.setComparator(comparator);
 
         return column;
+    }
+
+    /**
+     * Adds theme variants to the component.
+     *
+     * @param variants
+     *            theme variants to add
+     */
+    public void addThemeVariants(SelectionGridVariant... variants) {
+        getThemeNames().addAll(Stream.of(variants)
+                .map(SelectionGridVariant::getVariantName).collect(Collectors.toList()));
+    }
+
+    /**
+     * Removes theme variants from the component.
+     *
+     * @param variants
+     *            theme variants to remove
+     */
+    public void removeThemeVariants(SelectionGridVariant... variants) {
+        getThemeNames().removeAll(Stream.of(variants)
+                .map(SelectionGridVariant::getVariantName).collect(Collectors.toList()));
     }
 }
