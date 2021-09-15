@@ -9,9 +9,9 @@ package com.vaadin.componentfactory.selectiongrid;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ package com.vaadin.componentfactory.selectiongrid;
  * #L%
  */
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -27,8 +28,8 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
-import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.data.provider.DataCommunicator;
+import com.vaadin.flow.data.selection.SelectionModel;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -52,40 +53,48 @@ public class SelectionGrid<T> extends Grid<T> {
     }
 
     /**
-     *
-     * @see Grid#Grid(int)
-     *
      * @param pageSize - the page size. Must be greater than zero.
+     * @see Grid#Grid(int)
      */
     public SelectionGrid(int pageSize) {
         super(pageSize);
     }
 
     /**
-     *
-     * @see Grid#Grid(Class, boolean)
-     *
-     * @param beanType - the bean type to use, not null
+     * @param beanType          - the bean type to use, not null
      * @param autoCreateColumns – when true, columns are created automatically for the properties of the beanType
+     * @see Grid#Grid(Class, boolean)
      */
     public SelectionGrid(Class<T> beanType, boolean autoCreateColumns) {
         super(beanType, autoCreateColumns);
     }
 
     /**
-     *
-     * @see Grid#Grid(Class)
-     *
      * @param beanType - the bean type to use, not null
+     * @see Grid#Grid(Class)
      */
     public SelectionGrid(Class<T> beanType) {
         super(beanType);
+    }
+
+    /**
+     * Runs the super.onAttach and hides the multi selection column afterwards (if necessary).
+     *
+     * @param attachEvent event
+     */
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        if (this.getSelectionModel() instanceof SelectionModel.Multi) {
+            hideMultiSelectionColumn();
+        }
     }
 
     @Override
     public void scrollToIndex(int rowIndex) {
         super.scrollToIndex(rowIndex);
     }
+
     /**
      * Focus on the first cell on the row
      *
@@ -98,13 +107,13 @@ public class SelectionGrid<T> extends Grid<T> {
     /**
      * Focus on the specific column on the row
      *
-     * @param item item to scroll and focus
+     * @param item   item to scroll and focus
      * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
         int index = getIndexForItem(item);
         if (index > 0) {
-            int colIndex = (column != null)?getColumns().indexOf(column):0;
+            int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
             // delay the call of focus on cell if it's used on the same round trip (grid creation + focusCell)
             this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), index, colIndex);
         }
@@ -132,7 +141,7 @@ public class SelectionGrid<T> extends Grid<T> {
     }
 
     private String getColumnInternalId(Column<T> column) {
-        Method getInternalId ;
+        Method getInternalId;
         try {
             getInternalId = Column.class.getDeclaredMethod("getInternalId");
             getInternalId.setAccessible(true);
@@ -159,7 +168,7 @@ public class SelectionGrid<T> extends Grid<T> {
                 fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
                 fetchFromProvider.setAccessible(true);
                 asMultiSelect().select(((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
-                    toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toList()));
+                        toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toList()));
             } catch (Exception ignored) {
                 ignored.printStackTrace();
             }
@@ -168,6 +177,7 @@ public class SelectionGrid<T> extends Grid<T> {
 
     /**
      * Select the range and deselect the other items
+     *
      * @param fromIndex
      * @param toIndex
      */
@@ -194,16 +204,28 @@ public class SelectionGrid<T> extends Grid<T> {
 
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
-        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+        if (selectionMode == SelectionMode.MULTI) {
+            hideMultiSelectionColumn();
+        }
         super.setSelectionModel(model, selectionMode);
     }
 
+    /**
+     * Runs a JavaScript snippet to hide the multi selection / checkbox column on the client side. The column
+     * is not removed, but set to "hidden" explicitly.
+     */
+    protected void hideMultiSelectionColumn() {
+        getElement().getNode().runWhenAttached(ui ->
+                ui.beforeClientResponse(this, context ->
+                        getElement().executeJs(
+                                "if (this.querySelector('vaadin-grid-flow-selection-column')) {" +
+                                        " this.querySelector('vaadin-grid-flow-selection-column').hidden = true }")));
+    }
 
     /**
      * Adds theme variants to the component.
      *
-     * @param variants
-     *            theme variants to add
+     * @param variants theme variants to add
      */
     public void addThemeVariants(SelectionGridVariant... variants) {
         getThemeNames().addAll(Stream.of(variants)
@@ -213,8 +235,7 @@ public class SelectionGrid<T> extends Grid<T> {
     /**
      * Removes theme variants from the component.
      *
-     * @param variants
-     *            theme variants to remove
+     * @param variants theme variants to remove
      */
     public void removeThemeVariants(SelectionGridVariant... variants) {
         getThemeNames().removeAll(Stream.of(variants)
