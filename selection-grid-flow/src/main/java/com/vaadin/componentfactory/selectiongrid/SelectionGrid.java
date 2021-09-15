@@ -20,6 +20,7 @@ package com.vaadin.componentfactory.selectiongrid;
  * #L%
  */
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -28,7 +29,9 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.page.PendingJavaScriptResult;
 import com.vaadin.flow.data.provider.DataCommunicator;
+import com.vaadin.flow.data.selection.SelectionModel;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -80,6 +83,18 @@ public class SelectionGrid<T> extends Grid<T> {
      */
     public SelectionGrid(Class<T> beanType) {
         super(beanType);
+    }
+
+    /**
+     * Runs the super.onAttach and hides the multi selection column afterwards (if necessary).
+     * @param attachEvent event
+     */
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        if (this.getSelectionModel() instanceof SelectionModel.Multi) {
+            hideMultiSelectionColumn();
+        }
     }
 
     @Override
@@ -194,10 +209,19 @@ public class SelectionGrid<T> extends Grid<T> {
 
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
-        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+        if (selectionMode == SelectionMode.MULTI) {
+            hideMultiSelectionColumn();
+        }
         super.setSelectionModel(model, selectionMode);
     }
 
+    /**
+     * Runs a JavaScript snippet to hide the multi selection / checkbox column on the client side. The column
+     * is not removed, but set to "hidden" explicitly.
+     */
+    protected void hideMultiSelectionColumn() {
+        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+    }
 
     /**
      * Adds theme variants to the component.
