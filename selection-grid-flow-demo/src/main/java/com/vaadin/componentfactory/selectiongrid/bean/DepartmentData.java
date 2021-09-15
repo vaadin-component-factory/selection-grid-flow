@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DepartmentData {
     private static final List<Department> DEPARTMENT_LIST = createDepartmentList();
@@ -82,6 +83,13 @@ public class DepartmentData {
                 department -> Objects.equals(department.getParent(), parent))
                 .collect(Collectors.toList());
         return departmentList.subList(offset, departmentList.size());
+    }
+
+    public Stream<Department> streamDepartments(Department parent, int offset, int limit) {
+        return DEPARTMENT_LIST.stream()
+                .filter(department -> Objects.equals(department.getParent(), parent))
+                .skip(offset)
+                .limit(limit);
     }
 
     public boolean hasChildren(Department parent) {

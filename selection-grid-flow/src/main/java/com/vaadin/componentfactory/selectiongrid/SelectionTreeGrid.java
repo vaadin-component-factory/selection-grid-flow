@@ -120,7 +120,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     private List<T> expandAncestor(T item) {
         List<T> ancestors = new ArrayList<>();
 
-        ParentItemProvider<T, T> parentItemProvider = getParentItemProvider();
+        ParentItemProvider<T> parentItemProvider = getParentItemProvider();
 
         Optional<T> parent = parentItemProvider.getParent(item);
         while (parent.isPresent()) {
@@ -134,14 +134,14 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private ParentItemProvider<T, T> getParentItemProvider() {
-        ParentItemProvider<T, T> parentItemProvider;
+    private ParentItemProvider<T> getParentItemProvider() {
+        ParentItemProvider<T> parentItemProvider;
         if (getDataProvider() instanceof TreeDataProvider) {
             return itemToCheck -> Optional.ofNullable(getTreeData().getParent(itemToCheck));
         }
 
         if (getDataProvider() instanceof ParentItemProvider) {
-            return (ParentItemProvider<T, T>) getDataProvider();
+            return (ParentItemProvider<T>) getDataProvider();
         }
 
         throw new IllegalStateException("The data provider must either be a TreeDataProvider or " +
@@ -151,15 +151,6 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     private int getIndexForItem(T item) {
         HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
         return dataCommunicator.getIndex(item);
-    }
-
-    @Override
-    public void setDataProvider(DataProvider<T, ?> dataProvider) {
-        if (!(dataProvider instanceof HierarchicalDataProvider) && !(dataProvider instanceof InMemoryDataProvider)) {
-            throw new IllegalArgumentException("The given data provider must implement " +
-                    "HierarchicalDataProvider and InMemoryDataProvider!");
-        }
-        super.setDataProvider(dataProvider);
     }
 
     @ClientCallable
