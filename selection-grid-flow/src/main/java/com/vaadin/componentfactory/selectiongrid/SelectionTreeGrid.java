@@ -28,7 +28,6 @@ import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
-import com.vaadin.flow.data.provider.InMemoryDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
@@ -152,7 +151,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
         return dataCommunicator.getIndex(item);
     }
-
+  
     @ClientCallable
     private void selectRange(int fromIndex, int toIndex) {
         int from = Math.min(fromIndex, toIndex);
