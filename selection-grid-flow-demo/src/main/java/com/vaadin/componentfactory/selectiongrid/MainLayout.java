@@ -12,6 +12,7 @@ public class MainLayout extends AppLayout {
         final RouterLink simple = new RouterLink("Selection Grid", SimpleView.class);
         final RouterLink beanGrid = new RouterLink("Selection Grid with a bean class", BeanGridView.class);
         final RouterLink selectionTreeGrid = new RouterLink("Selection TreeGrid", SelectionTreeGridView.class);
+        final RouterLink selectionTreeGridCustomDP = new RouterLink("Selection TreeGrid (custom data provider)", SelectionTreeGridViewWithCustomDataProvider.class);
         final RouterLink focus = new RouterLink("Focus Grid view", FocusGridView.class);
         final RouterLink focusHeader = new RouterLink("Multiple headers Grid view", FocusGridMultipleColGroupView.class);
         final RouterLink focusTree = new RouterLink("Focus TreeGrid view", FocusTreeGridView.class);
@@ -20,9 +21,9 @@ public class MainLayout extends AppLayout {
         final RouterLink selectableText = new RouterLink("Selectable Text", SelectableTextView.class);
         final RouterLink lazy = new RouterLink("Lazy Grid view", LazyDataView.class);
         final RouterLink lazyFocus = new RouterLink("Focus on lazy view", LazyFocusView.class);
-        final VerticalLayout menuLayout = new VerticalLayout(simple, beanGrid, selectionTreeGrid, focus,
-            focusHeader, focusTree, focusHTree, filter, selectableText,
-            lazy, lazyFocus);
+        final VerticalLayout menuLayout = new VerticalLayout(simple, beanGrid, selectionTreeGrid, selectionTreeGridCustomDP,
+                focus, focusHeader, focusTree, focusHTree, filter, selectableText,
+                lazy, lazyFocus);
         addToDrawer(menuLayout);
         addToNavbar(drawerToggle);
     }
