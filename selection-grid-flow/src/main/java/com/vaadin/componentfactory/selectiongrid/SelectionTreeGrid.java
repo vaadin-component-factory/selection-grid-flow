@@ -28,10 +28,10 @@ import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.DataProvider;
+import com.vaadin.flow.data.provider.InMemoryDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
-import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.function.ValueProvider;
@@ -138,8 +138,9 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     @Override
     public void setDataProvider(DataProvider<T, ?> dataProvider) {
-        if (!(dataProvider instanceof TreeDataProvider)) {
-            throw new IllegalArgumentException("SelectionTreeGrid only accepts TreeDataProvider.");
+        if (!(dataProvider instanceof HierarchicalDataProvider) && !(dataProvider instanceof InMemoryDataProvider)) {
+            throw new IllegalArgumentException("The given data provider must implement " +
+                    "HierarchicalDataProvider and InMemoryDataProvider!");
         }
         super.setDataProvider(dataProvider);
     }
