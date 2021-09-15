@@ -20,6 +20,7 @@ package com.vaadin.componentfactory.selectiongrid;
  * #L%
  */
 
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -27,12 +28,12 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
+import com.vaadin.flow.data.selection.SelectionModel;
 import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.internal.Range;
@@ -74,6 +75,19 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      */
     public SelectionTreeGrid(HierarchicalDataProvider<T, ?> dataProvider) {
         super(dataProvider);
+    }
+
+    /**
+     * Runs the super.onAttach and hides the multi selection column afterwards (if necessary).
+     *
+     * @param attachEvent event
+     */
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        if (this.getSelectionModel() instanceof SelectionModel.Multi) {
+            hideMultiSelectionColumn();
+        }
     }
 
     /**
@@ -197,9 +211,24 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
-        getElement().executeJs("if (this.querySelector('vaadin-grid-flow-selection-column')) { this.querySelector('vaadin-grid-flow-selection-column').hidden = true }");
+        if (selectionMode == SelectionMode.MULTI) {
+            hideMultiSelectionColumn();
+        }
         super.setSelectionModel(model, selectionMode);
     }
+
+    /**
+     * Runs a JavaScript snippet to hide the multi selection / checkbox column on the client side. The column
+     * is not removed, but set to "hidden" explicitly.
+     */
+    protected void hideMultiSelectionColumn() {
+        getElement().getNode().runWhenAttached(ui ->
+                ui.beforeClientResponse(this, context ->
+                        getElement().executeJs(
+                                "if (this.querySelector('vaadin-grid-flow-selection-column')) {" +
+                                        " this.querySelector('vaadin-grid-flow-selection-column').hidden = true }")));
+    }
+
 
     @Override
     public Column<T> addHierarchyColumn(ValueProvider<T, ?> valueProvider) {
