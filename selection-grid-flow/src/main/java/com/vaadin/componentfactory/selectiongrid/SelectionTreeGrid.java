@@ -9,9 +9,9 @@ package com.vaadin.componentfactory.selectiongrid;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,16 +32,14 @@ import com.vaadin.flow.data.provider.InMemoryDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.function.ValueProvider;
 import com.vaadin.flow.internal.Range;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,25 +50,28 @@ import java.util.stream.Stream;
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     /**
-     *  @see  TreeGrid#TreeGrid()
+     * @see TreeGrid#TreeGrid()
      */
     public SelectionTreeGrid() {
         super();
     }
 
     /**
-     * @see  TreeGrid#TreeGrid(Class)
-     *
      * @param beanType beanType – the bean type to use, not null
+     * @see TreeGrid#TreeGrid(Class)
      */
     public SelectionTreeGrid(Class<T> beanType) {
         super(beanType);
     }
 
     /**
-     * @see  TreeGrid#TreeGrid(HierarchicalDataProvider)
+     * Creates a new instance using the given hierarchical data provider.
+     * <p></p>
+     * Please note, that when you want to use {@link #focusOnCell} or {@link #scrollToItem}, the data provider
+     * needs to implement
      *
      * @param dataProvider dataProvider – the data provider, not null
+     * @see TreeGrid#TreeGrid(HierarchicalDataProvider)
      */
     public SelectionTreeGrid(HierarchicalDataProvider<T, ?> dataProvider) {
         super(dataProvider);
@@ -88,7 +89,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /**
      * Focus on the specific column on the row
      *
-     * @param item item to scroll and focus
+     * @param item   item to scroll and focus
      * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
@@ -96,7 +97,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         int index = getIndexForItem(item);
         if (index >= 0) {
             //String internalId = (column != null)?getColumnInternalId(column):"";
-            int colIndex = (column != null)?getColumns().indexOf(column):0;
+            int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
             this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
         }
     }
@@ -119,16 +120,32 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     private List<T> expandAncestor(T item) {
         List<T> ancestors = new ArrayList<>();
 
-        T parent = getTreeData().getParent(item);
-        while (parent != null) {
-            ancestors.add(parent);
-            item = parent;
-            parent = getTreeData().getParent(item);
+        ParentItemProvider<T, T> parentItemProvider = getParentItemProvider();
+
+        Optional<T> parent = parentItemProvider.getParent(item);
+        while (parent.isPresent()) {
+            ancestors.add(parent.get());
+            parent = parentItemProvider.getParent(parent.get());
         }
         if (!ancestors.isEmpty()) {
             expand(ancestors);
         }
         return ancestors;
+    }
+
+    @SuppressWarnings("unchecked")
+    private ParentItemProvider<T, T> getParentItemProvider() {
+        ParentItemProvider<T, T> parentItemProvider;
+        if (getDataProvider() instanceof TreeDataProvider) {
+            return itemToCheck -> Optional.ofNullable(getTreeData().getParent(itemToCheck));
+        }
+
+        if (getDataProvider() instanceof ParentItemProvider) {
+            return (ParentItemProvider<T, T>) getDataProvider();
+        }
+
+        throw new IllegalStateException("The data provider must either be a TreeDataProvider or " +
+                "implement ParentItemProvider to use this method");
     }
 
     private int getIndexForItem(T item) {
@@ -151,7 +168,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         int to = Math.max(fromIndex, toIndex);
 
         HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-        Method getHierarchyMapper ;
+        Method getHierarchyMapper;
         try {
             getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
             getHierarchyMapper.setAccessible(true);
@@ -163,6 +180,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     /**
      * Select the range and deselect the other items
+     *
      * @param fromIndex
      * @param toIndex
      */
@@ -173,7 +191,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             int from = Math.min(fromIndex, toIndex);
             int to = Math.max(fromIndex, toIndex);
             HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-            Method getHierarchyMapper ;
+            Method getHierarchyMapper;
             try {
                 getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
                 getHierarchyMapper.setAccessible(true);
@@ -196,16 +214,16 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     @Override
     public Column<T> addHierarchyColumn(ValueProvider<T, ?> valueProvider) {
         Column<T> column = addColumn(TemplateRenderer
-            .<T> of("<vaadin-grid-tree-toggle "
-                + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-                + "</vaadin-grid-tree-toggle>[[item.name]]")
-            .withProperty("leaf",
-                item -> !getDataCommunicator().hasChildren(item))
-            .withProperty("name",
-                value -> String.valueOf(valueProvider.apply(value))));
+                .<T>of("<vaadin-grid-tree-toggle "
+                        + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
+                        + "</vaadin-grid-tree-toggle>[[item.name]]")
+                .withProperty("leaf",
+                        item -> !getDataCommunicator().hasChildren(item))
+                .withProperty("name",
+                        value -> String.valueOf(valueProvider.apply(value))));
         final SerializableComparator<T> comparator =
-            (a, b) -> compareMaybeComparables(valueProvider.apply(a),
-                valueProvider.apply(b));
+                (a, b) -> compareMaybeComparables(valueProvider.apply(a),
+                        valueProvider.apply(b));
         column.setComparator(comparator);
 
         return column;
@@ -214,8 +232,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /**
      * Adds theme variants to the component.
      *
-     * @param variants
-     *            theme variants to add
+     * @param variants theme variants to add
      */
     public void addThemeVariants(SelectionGridVariant... variants) {
         getThemeNames().addAll(Stream.of(variants)
@@ -225,8 +242,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /**
      * Removes theme variants from the component.
      *
-     * @param variants
-     *            theme variants to remove
+     * @param variants theme variants to remove
      */
     public void removeThemeVariants(SelectionGridVariant... variants) {
         getThemeNames().removeAll(Stream.of(variants)
