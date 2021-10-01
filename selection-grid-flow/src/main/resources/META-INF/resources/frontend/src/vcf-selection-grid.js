@@ -24,7 +24,6 @@ import { GridElement } from  '@vaadin/vaadin-grid/src/vaadin-grid.js';
 
 import {
     _getItemOverriden,
-    _loadPageOverriden,
     _selectionGridSelectRow,
     _selectionGridSelectRowWithItem
 } from './helpers';
@@ -33,9 +32,7 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
 
     constructor() {
         super();
-
         this._getItemOverriden = _getItemOverriden.bind(this);
-        this._loadPageOverriden = _loadPageOverriden.bind(this);
         this._selectionGridSelectRow = _selectionGridSelectRow.bind(this);
         this._selectionGridSelectRowWithItem = _selectionGridSelectRowWithItem.bind(this);
     }
@@ -52,7 +49,6 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
     ready() {
         super.ready();
         this._getItem = this._getItemOverriden;
-        this._loadPage = this._loadPageOverriden;
     }
 
     connectedCallback() {
@@ -149,7 +145,7 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
     }
 
     static get version() {
-        return '0.1.0';
+        return '0.2.0';
     }
 }
 
