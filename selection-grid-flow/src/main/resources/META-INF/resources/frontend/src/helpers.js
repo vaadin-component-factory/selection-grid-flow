@@ -99,13 +99,13 @@ export function _getItemOverriden(index, el) {
     const { cache, scaledIndex } = this._cache.getCacheAndIndex(index);
     const item = cache.items[scaledIndex];
     if (item) {
-        this._toggleAttribute("loading", false, el);
+        this.toggleAttribute("loading", false, el);
         this._updateItem(el, item);
         if (this._isExpanded(item)) {
             cache.ensureSubCacheForScaledIndex(scaledIndex);
         }
     } else {
-        this._toggleAttribute("loading", true, el);
+        this.toggleAttribute("loading", true, el);
         this._loadPage(this._getPageForIndex(scaledIndex), cache);
     }
     /** focus when get item if there is an item to focus **/

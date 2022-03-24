@@ -6,7 +6,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow-demo</artifactId>
-    <version>0.5.0</version>
+    <version>2.0.0</version>
 
     <name>Selection Grid Demo</name>
     <packaging>war</packaging>
@@ -18,9 +18,9 @@
     </organization>
 
     <properties>
-        <vaadin.version>14.7.1</vaadin.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <vaadin.version>23.0.2</vaadin.version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -106,7 +106,7 @@
        <dependency>
            <groupId>com.vaadin.componentfactory</groupId>
            <artifactId>selection-grid-flow</artifactId>
-           <version>0.5.0</version>
+           <version>2.0.0</version>
        </dependency>
 
         <dependency>
@@ -144,6 +144,10 @@
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-maven-plugin</artifactId>
                 <version>${vaadin.version}</version>
+                <configuration>
+                	<requireHomeNodeExec>true</requireHomeNodeExec>
+                	<pnpmEnable>true</pnpmEnable>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
