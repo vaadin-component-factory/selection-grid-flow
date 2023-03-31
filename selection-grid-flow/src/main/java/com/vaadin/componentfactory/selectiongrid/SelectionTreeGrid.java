@@ -43,6 +43,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ *
+ * @param <T> – the grid bean type
+ */
 @Tag("vaadin-selection-grid")
 @CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
 @JsModule("./src/vcf-selection-grid.js")
@@ -66,9 +70,9 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     /**
      * Creates a new instance using the given hierarchical data provider.
-     * <p></p>
+     * <p>
      * Please note, that when you want to use {@link #focusOnCell} or {@link #scrollToItem}, the data provider
-     * needs to implement
+     * needs to implement</p>
      *
      * @param dataProvider dataProvider – the data provider, not null
      * @see TreeGrid#TreeGrid(HierarchicalDataProvider)
@@ -234,7 +238,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     public Column<T> addHierarchyColumn(ValueProvider<T, ?> valueProvider) {
         Column<T> column = addColumn(LitRenderer.<T> of(
                 "<vaadin-grid-tree-toggle @click=${onClick} .leaf=${!item.children} .expanded=${model.expanded} .level=${model.level}>"
-                        + "${item.name}</vaadin-grid-tree-toggle>")
+                        + "</vaadin-grid-tree-toggle>${item.name}")
                 .withProperty("children",
                         item -> getDataCommunicator().hasChildren(item))
                 .withProperty("name",

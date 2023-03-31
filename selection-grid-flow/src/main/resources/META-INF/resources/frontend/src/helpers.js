@@ -90,7 +90,6 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
     }
 }
 
-
 export function _getItemOverriden(index, el) {
     if (index >= this._effectiveSize) {
         return;
@@ -99,13 +98,13 @@ export function _getItemOverriden(index, el) {
     const { cache, scaledIndex } = this._cache.getCacheAndIndex(index);
     const item = cache.items[scaledIndex];
     if (item) {
-        this.toggleAttribute("loading", false, el);
+        this.__updateLoading(el, false);
         this._updateItem(el, item);
         if (this._isExpanded(item)) {
             cache.ensureSubCacheForScaledIndex(scaledIndex);
         }
     } else {
-        this.toggleAttribute("loading", true, el);
+        this.__updateLoading(el, true);
         this._loadPage(this._getPageForIndex(scaledIndex), cache);
     }
     /** focus when get item if there is an item to focus **/
@@ -119,4 +118,4 @@ export function _getItemOverriden(index, el) {
             }
         }
     }
-};
+}
