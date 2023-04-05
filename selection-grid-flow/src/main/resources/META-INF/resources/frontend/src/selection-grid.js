@@ -20,6 +20,24 @@
 customElements.whenDefined("vaadin-selection-grid").then(() => {
     const Grid = customElements.get("vaadin-selection-grid");
     if (Grid) {
+        const oldOnContextMenuHandler = Grid.prototype._onContextMenu;
+        Grid.prototype._onContextMenu = function _onContextMenu(e) {
+
+            const tr = e.composedPath().find((p) => p.nodeName === "TR");
+            if (tr && typeof tr.index != 'undefined') {
+                const item = tr._item;
+                const index = tr.index;
+                if (this.selectedItems && this.selectedItems.some((i) => i.key === item.key)) {
+                    // in case current row selected, do nothing, else
+                } else {
+                    this._selectionGridSelectRow(e);
+                }
+            }
+
+            const boundOnConextMenuHandler = oldOnContextMenuHandler.bind(this);
+            boundOnConextMenuHandler(e);
+        }
+
         const oldClickHandler = Grid.prototype._onClick;
         Grid.prototype._onClick = function _click(e) {
             const boundOldClickHandler = oldClickHandler.bind(this);
