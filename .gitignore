@@ -24,7 +24,11 @@ target/
 *.iml
 .idea/
 .eclipse
-
+.project
+.settings
+.classpath
+.npmrc
+.pnpmfile.cjs
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -35,5 +39,13 @@ package-lock.json
 package.json
 webpack.config.js
 webpack.generated.js
+tsconfig.json
+types.d.ts
+vite.config.ts
+vite.generated.ts
+pnpm-lock.yaml
 
 selection-grid-flow/src/main/resources/rebel.xml
+
+selection-grid-flow-demo/frontend/generated
+selection-grid-flow-demo/frontend/index.html
