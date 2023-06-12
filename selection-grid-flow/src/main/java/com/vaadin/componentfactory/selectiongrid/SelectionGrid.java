@@ -35,6 +35,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -182,25 +183,49 @@ public class SelectionGrid<T> extends Grid<T> {
      * @param toIndex
      */
     @ClientCallable
-    private void selectRangeOnly(int fromIndex, int toIndex) {
-        GridSelectionModel<T> model = getSelectionModel();
-        if (model instanceof GridMultiSelectionModel) {
-            int from = Math.min(fromIndex, toIndex);
-            int to = Math.max(fromIndex, toIndex);
-            DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-            Method fetchFromProvider;
-            try {
-                fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
-                fetchFromProvider.setAccessible(true);
-                Set<T> newSelectedItems = ((Stream<T>) fetchFromProvider.invoke(dataCommunicator, from, to - from + 1)).collect(Collectors.toSet());
-                HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
-                oldSelectedItems.removeAll(newSelectedItems);
-                asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-            }
-        }
-    }
+	private void selectRangeOnly(int fromIndex, int toIndex) {
+		GridSelectionModel<T> model = getSelectionModel();
+		if (model instanceof GridMultiSelectionModel) {
+			int from = Math.min(fromIndex, toIndex);
+			int to = Math.max(fromIndex, toIndex);
+			fetchFromProvider(from, to - from + 1).ifPresent(stream -> {
+				Set<T> newSelectedItems = stream.collect(Collectors.toSet());
+				HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
+				oldSelectedItems.removeAll(newSelectedItems);
+				asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
+			});
+		}
+	}
+
+	private Optional<Stream<T>> fetchFromProvider(int offset, int limit) {
+		DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+		Method fetchFromProvider;
+		int padding = 0;
+		int originalLimit = limit;
+		
+		if(dataCommunicator.isPagingEnabled() ) {
+			int end = offset + limit;			
+			while(true) {
+				padding = offset % limit;
+				int updatedOffset = offset - padding;
+				if((updatedOffset + limit) >= end && (updatedOffset + limit) <= dataCommunicator.getItemCount()) {
+					offset = updatedOffset;
+					break;
+				} else {
+					limit++;
+				}
+			}			
+		}		
+		try {
+			fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
+			fetchFromProvider.setAccessible(true);
+			Stream<T> stream = (Stream<T>) fetchFromProvider.invoke(dataCommunicator, offset, limit);
+			return Optional.of(stream.skip(padding).limit(originalLimit));
+		} catch (Exception ignored) {
+			ignored.printStackTrace();
+		}
+		return Optional.empty();
+	}
 
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
