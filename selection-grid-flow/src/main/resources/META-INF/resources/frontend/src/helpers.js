@@ -105,7 +105,8 @@ export function _getItemOverriden(index, el) {
         }
     } else {
         this.__updateLoading(el, true);
-        this._loadPage(this._getPageForIndex(scaledIndex), cache);
+        const page = Math.floor(scaledIndex / this.pageSize);
+        this._loadPage(page, cache);
     }
     /** focus when get item if there is an item to focus **/
     if (this._rowNumberToFocus > -1) {
