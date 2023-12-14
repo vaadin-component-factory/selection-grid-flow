@@ -18,7 +18,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <selection-grid-flow.version>3.0.1</selection-grid-flow.version>
+        <selection-grid-flow.version>3.0.3</selection-grid-flow.version>
     </properties>
     <inceptionYear>2020</inceptionYear>
     <organization>
