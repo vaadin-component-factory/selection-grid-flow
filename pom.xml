@@ -13,7 +13,7 @@
     <description>selection-grid-flow</description>
     
     <properties>
-        <vaadin.version>24.0.2</vaadin.version>
+        <vaadin.version>24.3.0</vaadin.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,6 +42,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
     <repositories>
         <repository>
             <id>Vaadin Directory</id>
@@ -71,4 +72,5 @@
             <releases><enabled>false</enabled></releases>
         </pluginRepository>
     </pluginRepositories>
+    
 </project>
