@@ -90,27 +90,27 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
     }
 }
 
-export function _getItemOverriden(index, el) {
-    if (index >= this._effectiveSize) {
+export function _getItemOverriden(idx, el) {
+    if (idx >= this._flatSize) {
         return;
     }
-    el.index = index;
-    const { cache, scaledIndex } = this._cache.getCacheAndIndex(index);
-    const item = cache.items[scaledIndex];
+    el.index = idx;
+    const { cache, index } = this._dataProviderController.getFlatIndexContext(idx);
+    const item = cache.items[index];
     if (item) {
         this.__updateLoading(el, false);
         this._updateItem(el, item);
         if (this._isExpanded(item)) {
-            cache.ensureSubCacheForScaledIndex(scaledIndex);
+            this._dataProviderController.ensureFlatIndexHierarchy(idx);
         }
     } else {
         this.__updateLoading(el, true);
-        const page = Math.floor(scaledIndex / this.pageSize);
-        this._loadPage(page, cache);
+        const page = Math.floor(index / this.pageSize);
+        this._dataProviderController.__loadCachePage(cache, page);
     }
     /** focus when get item if there is an item to focus **/
     if (this._rowNumberToFocus > -1) {
-        if (index === this._rowNumberToFocus) {
+        if (idx === this._rowNumberToFocus) {
             const row = Array.from(this.$.items.children).filter(
                 (child) => child.index === this._rowNumberToFocus
             )[0];

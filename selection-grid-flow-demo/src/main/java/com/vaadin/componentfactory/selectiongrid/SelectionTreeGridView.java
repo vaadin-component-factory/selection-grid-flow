@@ -2,6 +2,7 @@ package com.vaadin.componentfactory.selectiongrid;
 
 import com.vaadin.componentfactory.selectiongrid.bean.Department;
 import com.vaadin.componentfactory.selectiongrid.bean.DepartmentData;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -15,12 +16,13 @@ public class SelectionTreeGridView extends VerticalLayout {
 
     private DepartmentData departmentData = new DepartmentData();
     private Div messageDiv = new Div();
+    Checkbox checkbox = new Checkbox("Case");
 
 
     public SelectionTreeGridView() {
         SelectionTreeGrid<Department> grid = buildGrid();
         addAndExpand(grid);
-        add(messageDiv);
+        add(checkbox, messageDiv);
         setPadding(false);
         setSizeFull();
     }
@@ -29,11 +31,15 @@ public class SelectionTreeGridView extends VerticalLayout {
         SelectionTreeGrid<Department> grid = new SelectionTreeGrid<>();
         grid.setItems(departmentData.getRootDepartments(),
             departmentData::getChildDepartments);
-        grid.addHierarchyColumn(Department::getName).setHeader("Department Name").setKey("name");
+        grid.addHierarchyColumn(dept -> checkbox.getValue() ? dept.getName().toLowerCase() : dept.getName().toUpperCase() ).setHeader("Department Name").setKey("name");
         grid.setWidthFull();
 
         grid.setSelectionMode(Grid.SelectionMode.MULTI);
 
+        checkbox.addValueChangeListener(e -> {
+        	grid.getDataProvider().refreshAll();
+        });
+ 
         grid.asMultiSelect().addValueChangeListener(event -> {
             String message = String.format("Selection changed from %s to %s",
                 event.getOldValue(), event.getValue());
