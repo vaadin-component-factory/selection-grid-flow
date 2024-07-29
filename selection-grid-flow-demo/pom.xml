@@ -6,7 +6,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow-demo</artifactId>
-    <version>3.0.4</version>
+    <version>3.0.5-SNAPSHOT</version>
 
     <name>Selection Grid Demo</name>
     <packaging>war</packaging>
@@ -77,7 +77,7 @@
        <dependency>
            <groupId>com.vaadin.componentfactory</groupId>
            <artifactId>selection-grid-flow</artifactId>
-           <version>3.0.3</version>
+           <version>${project.version}</version>
        </dependency>
 
         <dependency>
