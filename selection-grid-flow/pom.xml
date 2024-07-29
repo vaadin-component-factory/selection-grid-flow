@@ -6,7 +6,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow</artifactId>
-    <version>3.0.4</version>
+    <version>3.0.5-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
