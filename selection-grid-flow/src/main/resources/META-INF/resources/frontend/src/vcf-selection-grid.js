@@ -25,7 +25,9 @@ import { Grid as GridElement } from  '@vaadin/grid/src/vaadin-grid.js';
 import {
     _getItemOverriden,
     _selectionGridSelectRow,
-    _selectionGridSelectRowWithItem
+    _selectionGridSelectRowWithItem,    
+    _debounce
+    
 } from './helpers';
 
 class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
@@ -35,6 +37,7 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
         this._getItemOverriden = _getItemOverriden.bind(this);
         this._selectionGridSelectRow = _selectionGridSelectRow.bind(this);
         this._selectionGridSelectRowWithItem = _selectionGridSelectRowWithItem.bind(this);
+        this._debounce = _debounce.bind(this);
     }
 
     static get properties() {
