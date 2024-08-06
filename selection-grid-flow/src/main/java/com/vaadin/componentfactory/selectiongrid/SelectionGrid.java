@@ -45,6 +45,9 @@ import java.util.stream.Stream;
 @JsModule("./src/vcf-selection-grid.js")
 @JsModule("./src/selection-grid.js")
 public class SelectionGrid<T> extends Grid<T> {
+	  
+    private Integer selectRangeOnlyFromIndex = null;
+    private Set<T> selectRangeOnlySelection = new HashSet<T>();
 
     /**
      * @see Grid#Grid()
@@ -163,18 +166,41 @@ public class SelectionGrid<T> extends Grid<T> {
     private void selectRange(int fromIndex, int toIndex) {
         GridSelectionModel<T> model = getSelectionModel();
         if (model instanceof GridMultiSelectionModel) {
-            DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-            Method fetchFromProvider;
-            try {
-                fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
-                fetchFromProvider.setAccessible(true);
-                asMultiSelect().select(((Stream<T>) fetchFromProvider.invoke(dataCommunicator, Math.min(fromIndex, toIndex), Math.max(fromIndex,
-                        toIndex) - Math.min(fromIndex, toIndex) + 1)).collect(Collectors.toList()));
-            } catch (Exception ignored) {
-                ignored.printStackTrace();
-            }
+			this.getUI().ifPresent(ui->ui.beforeClientResponse(this, (ctx)->{
+				Set<T> newSelectedItems = obtainNewSelectedItems(fromIndex, toIndex);
+				asMultiSelect().select(newSelectedItems);
+			}));
         }
     }
+    
+	@SuppressWarnings("unchecked")
+	private Set<T> obtainNewSelectedItems(int fromIndex, int toIndex) {
+		DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
+		Set<T> newSelectedItems = new HashSet<>();
+		int from = Math.min(fromIndex, toIndex);
+		int to = Math.max(fromIndex, toIndex) + 1;
+		int pageSize = dataCommunicator.getPageSize();
+		if (to - from < (pageSize * 2) - 3) {
+			// if the range to be retrieved is smaller than 2 pages
+			// ask the dataCommunicator to retrieve the items so the cache is used
+			for(int i = from; i < to; i++) {
+				newSelectedItems.add(dataCommunicator.getItem(i));
+			}
+		} else {
+			// if the range to be retrieved is bigger then use the fetchFromProvider method
+			// that load the items in pages reducing the amount of queries to the backend
+		    Method fetchFromProvider;
+		    try {
+		        fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
+		        fetchFromProvider.setAccessible(true);
+		        newSelectedItems.addAll(((Stream<T>) fetchFromProvider.invoke(dataCommunicator, from, to - from + 1)).collect(Collectors.toList()));
+		    } catch (Exception ignored) {
+		        ignored.printStackTrace();
+		    }
+		}
+		return newSelectedItems;
+	}
+
 
     /**
      * Select the range and deselect the other items
@@ -183,19 +209,58 @@ public class SelectionGrid<T> extends Grid<T> {
      * @param toIndex
      */
     @ClientCallable
-	private void selectRangeOnly(int fromIndex, int toIndex) {
-		GridSelectionModel<T> model = getSelectionModel();
-		if (model instanceof GridMultiSelectionModel) {
-			int from = Math.min(fromIndex, toIndex);
-			int to = Math.max(fromIndex, toIndex);
-			fetchFromProvider(from, to - from + 1).ifPresent(stream -> {
-				Set<T> newSelectedItems = stream.collect(Collectors.toSet());
-				HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
-				oldSelectedItems.removeAll(newSelectedItems);
-				asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
-			});
-		}
-	}
+    private void selectRangeOnly(int fromIndex, int toIndex) {
+		int start = fromIndex < toIndex ? fromIndex : toIndex;
+		int end = fromIndex < toIndex ? toIndex : fromIndex;
+        GridSelectionModel<T> model = getSelectionModel();
+        if (model instanceof GridMultiSelectionModel) {
+                      
+            Set<T> newSelectedItems = new HashSet<T>();
+          
+            int calculatedFromIndex = start;
+          
+            // selectRangeOnlySelection will keep the items already selected so there's no unnecessary
+            // call to backend done
+            if (!selectRangeOnlySelection.isEmpty()) {
+              int firstKey = selectRangeOnlyFromIndex;
+              int lastKey = firstKey + selectRangeOnlySelection.size() - 1;
+
+              // recalculate from index so already selected items are not re-selected and no
+              // unnecessary call to backend is done
+              if (start == firstKey && end > lastKey) {
+                calculatedFromIndex = lastKey;
+                newSelectedItems.addAll(selectRangeOnlySelection);                
+              }
+            }
+            
+            final int calculatedFromIndexFinal = calculatedFromIndex;
+			this.getUI().ifPresent(ui->ui.beforeClientResponse(this, (ctx)->{
+	            newSelectedItems.addAll(obtainNewSelectedItems(calculatedFromIndexFinal, end));
+	            HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
+	            oldSelectedItems.removeAll(newSelectedItems);
+	            asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
+			}));
+            
+            // update selectRangeOnlySelection with new selected items
+            selectRangeOnlySelection = new HashSet<T>(getSelectedItems());
+            selectRangeOnlyFromIndex = fromIndex;
+        }
+    }
+    
+    /**
+     * Select the range on click and makes sure selectRangeOnlySelection is cleared.
+     * 
+     * @param fromIndex
+     * @param toIndex
+     */
+    @ClientCallable
+    private void selectRangeOnlyOnClick(int fromIndex, int toIndex) {
+        selectRangeOnlySelection.clear();
+        selectRangeOnlyFromIndex = null;
+		this.getUI().ifPresent(ui->ui.beforeClientResponse(this, (ctx)->{
+			this.selectRangeOnly(fromIndex, toIndex);
+		}));
+    }
 
 	private Optional<Stream<T>> fetchFromProvider(int offset, int limit) {
 		DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
