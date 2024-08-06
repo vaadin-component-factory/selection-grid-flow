@@ -34,7 +34,7 @@ public class LazyFocusView extends VerticalLayout
                 grid.focusOnCell(item.getValue(), personColumn);
             }
         });
-        personComboBox.setItems(personDataProvider);
+        personComboBox.setDataProvider(personDataProvider,null);
 
         add(personComboBox);
         addAndExpand(grid);
