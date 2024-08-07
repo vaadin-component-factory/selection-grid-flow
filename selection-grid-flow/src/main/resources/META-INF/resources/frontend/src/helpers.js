@@ -36,7 +36,6 @@ export function _selectionGridSelectRow(e) {
     }
 }
 export function _debounce(func, wait, immediate) {
-	debugger;
     var context = this,
         args = arguments;
     var later = function() {
@@ -51,7 +50,6 @@ export function _debounce(func, wait, immediate) {
 	}
 };
 export function _selectionGridSelectRowWithItem(e, item, index) {
-	debugger;
     const ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey; //(this._ios)?e.metaKey:e.ctrlKey;
     // if click select only this row
     if (!ctrlKey && !e.shiftKey) {
