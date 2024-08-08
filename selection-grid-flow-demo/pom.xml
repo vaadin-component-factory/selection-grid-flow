@@ -6,7 +6,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow-demo</artifactId>
-    <version>3.0.7-SNAPSHOT</version>
+    <version>3.0.7</version>
 
     <name>Selection Grid Demo</name>
     <packaging>war</packaging>
