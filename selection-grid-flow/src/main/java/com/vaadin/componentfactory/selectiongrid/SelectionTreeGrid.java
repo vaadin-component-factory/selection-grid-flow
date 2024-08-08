@@ -212,6 +212,11 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             }
         }
     }
+    
+    @ClientCallable
+    private void selectRangeOnlyOnClick(int fromIndex, int toIndex) {
+        selectRangeOnly(fromIndex, toIndex);
+    }
 
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
