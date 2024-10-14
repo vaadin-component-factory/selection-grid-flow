@@ -116,8 +116,8 @@ public class SelectionGrid<T> extends Grid<T> {
      */
     public void focusOnCell(T item, Column<T> column) {
         int index = getIndexForItem(item);
-        if (index > 0) {
-            int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
+        if (index >= 0) {
+            int colIndex = (column != null) ? getColumns().indexOf(column) : 1;
             // delay the call of focus on cell if it's used on the same round trip (grid creation + focusCell)
             this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), index, colIndex);
         }
