@@ -180,7 +180,7 @@ public class SelectionGrid<T> extends Grid<T> {
 		int from = Math.min(fromIndex, toIndex);
 		int to = Math.max(fromIndex, toIndex) + 1;
 		int pageSize = dataCommunicator.getPageSize();
-		if (to - from < (pageSize * 2) - 3) {
+		if (dataCommunicator.getItemCount() > 0 && to - from < (pageSize * 2) - 3) {
 			// if the range to be retrieved is smaller than 2 pages
 			// ask the dataCommunicator to retrieve the items so the cache is used
 			for(int i = from; i < to; i++) {
