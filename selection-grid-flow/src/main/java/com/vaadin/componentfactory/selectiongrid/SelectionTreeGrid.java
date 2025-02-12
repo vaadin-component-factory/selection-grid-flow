@@ -47,11 +47,15 @@ import java.util.stream.Stream;
  *
  * @param <T> – the grid bean type
  */
+@SuppressWarnings("serial")
 @Tag("vaadin-selection-grid")
 @CssImport(value = "./styles/grid.css", themeFor = "vaadin-selection-grid")
 @JsModule("./src/vcf-selection-grid.js")
 @JsModule("./src/selection-grid.js")
 public class SelectionTreeGrid<T> extends TreeGrid<T> {
+
+    private boolean multiSelectionColumnVisible = false;
+    private boolean persistentCheckboxSelection = true;
 
     /**
      * @see TreeGrid#TreeGrid()
@@ -90,7 +94,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         if (this.getSelectionModel() instanceof SelectionModel.Multi) {
-            hideMultiSelectionColumn();
+        	setMultiSelectionColumnVisible(multiSelectionColumnVisible);
         }
     }
 
@@ -221,7 +225,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
         if (selectionMode == SelectionMode.MULTI) {
-            hideMultiSelectionColumn();
+        	setMultiSelectionColumnVisible(multiSelectionColumnVisible);
         }
         super.setSelectionModel(model, selectionMode);
     }
@@ -231,13 +235,8 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * is not removed, but set to "hidden" explicitly.
      */
     protected void hideMultiSelectionColumn() {
-        getElement().getNode().runWhenAttached(ui ->
-                ui.beforeClientResponse(this, context ->
-                        getElement().executeJs(
-                                "if (this.querySelector('vaadin-grid-flow-selection-column')) {" +
-                                        " this.querySelector('vaadin-grid-flow-selection-column').hidden = true }")));
+    	this.setMultiSelectionColumnVisible(false);
     }
-
 
     @Override
     public Column<T> addHierarchyColumn(ValueProvider<T, ?> valueProvider) {
@@ -284,4 +283,49 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         getThemeNames().removeAll(Stream.of(variants)
                 .map(SelectionGridVariant::getVariantName).collect(Collectors.toList()));
     }
+
+	/**
+	 * Returns true if the multi selection column is visible, false otherwise.
+	 * @return
+	 */
+	public boolean isMultiSelectionColumnVisible() {
+		return multiSelectionColumnVisible;
+	}
+
+	/**
+	 * Sets the visibility of the multi selection column.
+	 * 
+	 * @param multiSelectionColumnVisible - true to show the multi selection column, false to hide it
+	 */
+	public void setMultiSelectionColumnVisible(boolean multiSelectionColumnVisible) {
+		if (this.getSelectionModel() instanceof SelectionModel.Multi) {
+	        getElement().getNode().runWhenAttached(ui ->
+            ui.beforeClientResponse(this, context -> {
+            	getElement().executeJs(
+                        "if (this.querySelector('vaadin-grid-flow-selection-column')) {" +
+                                " this.querySelector('vaadin-grid-flow-selection-column').hidden = $0 }", !multiSelectionColumnVisible);
+            	this.recalculateColumnWidths();
+            }));
+		}
+		this.multiSelectionColumnVisible = multiSelectionColumnVisible;
+	}
+
+	/**
+	 * Returns true if the checkbox selection is persistent, false otherwise.
+	 * 
+	 * @return
+	 */
+	public boolean isPersistentCheckboxSelection() {
+		return persistentCheckboxSelection;
+	}
+
+	/**
+	 * Sets the checkbox selection to be persistent or not.
+	 * 
+	 * @param persistentCheckboxSelection - true to make the checkbox selection persistent, false otherwise
+	 */
+	public void setPersistentCheckboxSelection(boolean persistentCheckboxSelection) {
+		this.getElement().executeJs("this.classicCheckboxSelection = $0", !persistentCheckboxSelection);
+		this.persistentCheckboxSelection = persistentCheckboxSelection;
+	}
 }

@@ -5,6 +5,7 @@ import com.vaadin.componentfactory.selectiongrid.bean.DepartmentData;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 
@@ -21,8 +22,21 @@ public class SelectionTreeGridView extends VerticalLayout {
 
     public SelectionTreeGridView() {
         SelectionTreeGrid<Department> grid = buildGrid();
+        Checkbox changeMultiselectionColumn = new Checkbox("Multiselection column");
+		changeMultiselectionColumn.addValueChangeListener(event -> {
+			grid.setMultiSelectionColumnVisible(event.getValue());
+		});
+		Checkbox persistentCheckboxSelection = new Checkbox("Persistent selection");
+		persistentCheckboxSelection.setValue(true);
+		persistentCheckboxSelection.addValueChangeListener(event -> {
+			grid.setPersistentCheckboxSelection(event.getValue());
+		});
+		persistentCheckboxSelection.setTooltipText("When enabled, selecting a row via its checkbox will "
+				+ "add or remove it from the current selection without clearing previously selected rows. "
+				+ "This behavior allows users to manage selections manually using checkboxes, "
+				+ "similar to how email clients like Gmail handle selection");
         addAndExpand(grid);
-        add(checkbox, messageDiv);
+        add(new HorizontalLayout(checkbox, changeMultiselectionColumn, persistentCheckboxSelection), messageDiv);
         setPadding(false);
         setSizeFull();
     }

@@ -1,15 +1,17 @@
 package com.vaadin.componentfactory.selectiongrid;
 
+import java.util.stream.Stream;
+
 import com.vaadin.componentfactory.selectiongrid.bean.Person;
 import com.vaadin.componentfactory.selectiongrid.service.PersonService;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.router.Route;
-
-import java.util.stream.Stream;
 
 @Route(value = "lazy", layout = MainLayout.class)
 public class LazyDataView extends VerticalLayout
@@ -22,9 +24,21 @@ public class LazyDataView extends VerticalLayout
     {
         Div messageDiv = new Div();
 
-        Grid<Person> grid = new SelectionGrid<>();
+        SelectionGrid<Person> grid = new SelectionGrid<>();
         grid.setDataProvider(personDataProvider);
-
+        Checkbox changeMultiselectionColumn = new Checkbox("Multiselection column");
+		changeMultiselectionColumn.addValueChangeListener(event -> {
+			grid.setMultiSelectionColumnVisible(event.getValue());
+		});
+		Checkbox persistentCheckboxSelection = new Checkbox("Persistent selection");
+		persistentCheckboxSelection.setValue(true);
+		persistentCheckboxSelection.addValueChangeListener(event -> {
+			grid.setPersistentCheckboxSelection(event.getValue());
+		});
+		persistentCheckboxSelection.setTooltipText("When enabled, selecting a row via its checkbox will "
+				+ "add or remove it from the current selection without clearing previously selected rows. "
+				+ "This behavior allows users to manage selections manually using checkboxes, "
+				+ "similar to how email clients like Gmail handle selection");
         grid.addColumn(Person::getFirstName).setHeader("First Name");
         grid.addColumn(Person::getAge).setHeader("Age");
 
@@ -37,7 +51,7 @@ public class LazyDataView extends VerticalLayout
         });
 
         // You can pre-select items
-        add(grid, messageDiv);
+        add(new HorizontalLayout(changeMultiselectionColumn,persistentCheckboxSelection), grid, messageDiv);
     }
 
     public static class PersonDataProvider extends AbstractBackEndDataProvider<Person, String> {

@@ -50,7 +50,10 @@ export function _debounce(func, wait, immediate) {
 	}
 };
 export function _selectionGridSelectRowWithItem(e, item, index) {
-    const ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey; //(this._ios)?e.metaKey:e.ctrlKey;
+    let ctrlKey = (e.metaKey)?e.metaKey:e.ctrlKey; //(this._ios)?e.metaKey:e.ctrlKey;
+    if (!this.classicCheckboxSelection && e.srcElement && e.srcElement.parentNode && e.srcElement.parentNode.nodeName === 'VAADIN-CHECKBOX') {
+        ctrlKey = true;
+    }
     // if click select only this row
     if (!ctrlKey && !e.shiftKey) {
         if (this.$server) {
