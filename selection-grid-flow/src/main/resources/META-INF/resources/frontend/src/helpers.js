@@ -45,6 +45,8 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
             this.selectedItems = [];
             this.selectItem(item);
         }
+		this.rangeSelectRowFrom = index;
+		return;
     }
     // if ctrl click
     if (e.shiftKey && this.rangeSelectRowFrom >= 0) {
