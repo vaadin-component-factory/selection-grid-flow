@@ -3,7 +3,7 @@
 
     <groupId>com.vaadin.componentfactory</groupId>
     <artifactId>selection-grid-flow-root</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>selection-grid-flow</module>
@@ -11,14 +11,14 @@
     </modules>
     <name>selection-grid-flow</name>
     <description>selection-grid-flow</description>
-    
+
     <properties>
-        <vaadin.version>24.3.0</vaadin.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <vaadin.version>25.0.0-beta1</vaadin.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <selection-grid-flow.version>3.0.3</selection-grid-flow.version>
+        <selection-grid-flow.version>4.0.0</selection-grid-flow.version>
     </properties>
     <inceptionYear>2020</inceptionYear>
     <organization>
@@ -72,5 +72,5 @@
             <releases><enabled>false</enabled></releases>
         </pluginRepository>
     </pluginRepositories>
-    
+
 </project>

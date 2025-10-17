@@ -57,7 +57,7 @@ public class SelectionTreeGridViewWithCustomDataProvider extends VerticalLayout 
         return grid;
     }
 
-    public static class DepartmentsDataProvider extends AbstractBackEndHierarchicalDataProvider<Department, Void> implements ParentItemProvider<Department> {
+    public static class DepartmentsDataProvider extends AbstractBackEndHierarchicalDataProvider<Department, Void> {
         private final DepartmentData departmentData;
 
         public DepartmentsDataProvider(DepartmentData departmentData) {
@@ -65,8 +65,8 @@ public class SelectionTreeGridViewWithCustomDataProvider extends VerticalLayout 
         }
 
         @Override
-        public Optional<Department> getParent(Department item) {
-            return Optional.ofNullable(item.getParent());
+        public Department getParent(Department item) {
+            return item.getParent();
         }
 
         @Override
