@@ -21,6 +21,7 @@ package com.vaadin.componentfactory.selectiongrid;
  */
 
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
@@ -30,6 +31,9 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider.HierarchyFormat;
 import com.vaadin.flow.data.selection.SelectionModel;
+
+import tools.jackson.databind.node.ObjectNode;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -89,9 +93,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        if (this.getSelectionModel() instanceof SelectionModel.Multi) {
-            setMultiSelectionColumnVisible(multiSelectionColumnVisible);
-        }
+        initSelectionModel();
     }
 
     /**
@@ -113,9 +115,10 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         expand(getAncestors(item));
         // int index = getIndexForItem(item);
         // if (index >= 0) {
-        //     // String internalId = (column != null)?getColumnInternalId(column):"";
-        //     int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
-        //     this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
+        // // String internalId = (column != null)?getColumnInternalId(column):"";
+        // int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
+        // this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);",
+        // index, colIndex);
         // }
     }
 
@@ -130,7 +133,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         expand(getAncestors(item));
         // int index = getIndexForItem(item);
         // if (index >= 0) {
-        //     this.getElement().executeJs("this.scrollWhenReady($0, true);", index);
+        // this.getElement().executeJs("this.scrollWhenReady($0, true);", index);
         // }
     }
 
@@ -146,7 +149,9 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     private void selectRange(T startItem, T endItem, boolean deselectOthers) {
         var items = fetchHierarchyRecursively(null);
-        var range = items.subList(items.indexOf(startItem), items.indexOf(endItem) + 1);
+        var startIndex = items.indexOf(startItem);
+        var endIndex = items.indexOf(endItem);
+        var range = items.subList(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex) + 1);
 
         if (deselectOthers) {
             var oldSelectedItems = new HashSet<>(getSelectedItems());
@@ -161,27 +166,56 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     @Override
     protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
-        if (selectionMode == SelectionMode.MULTI) {
-            setMultiSelectionColumnVisible(multiSelectionColumnVisible);
-        }
-
         super.setSelectionModel(model, selectionMode);
+        initSelectionModel();
+    }
 
-        if (selectionMode == SelectionMode.MULTI) {
-            addMultiSelectionToggleListener();
+    public void initSelectionModel() {
+        if (getSelectionModel() instanceof GridMultiSelectionModel<T>) {
+            setMultiSelectionColumnVisible(multiSelectionColumnVisible);
+
+            getElement().executeJs(
+                    """
+                            const grid = this;
+                            const selectionColumn = this.querySelector('vaadin-grid-flow-selection-column');
+                            selectionColumn.autoSelect = true;
+                            selectionColumn._selectItem = function (item) {
+                                grid.$server.selectionTreeGridToggleItem(grid.getItemId(item), true, this._activeModifierKeys);
+                            }
+                            selectionColumn._deselectItem = function(item) {
+                                grid.$server.selectionTreeGridToggleItem(grid.getItemId(item), false, this._activeModifierKeys);
+                            }
+                            """);
         }
     }
 
-    private void addMultiSelectionToggleListener() {
-        ((GridMultiSelectionModel<T>) getSelectionModel()).addClientItemToggleListener((event) -> {
-            if (event.isShiftKey()) {
-                selectRange(rangeStartItem, event.getItem(), true);
-                return;
-            }
+    @ClientCallable
+    private void selectionTreeGridToggleItem(String itemKey, boolean selected, ObjectNode modifierKeys) {
+        T item = getDataCommunicator().getKeyMapper().get(itemKey);
+        if (item == null) {
+            throw new IllegalArgumentException("Item with key %s not found".formatted(itemKey));
+        }
 
-            rangeStartItem = event.getItem();
-            selectRange(rangeStartItem, rangeStartItem, true);
-        });
+        boolean ctrlKey = modifierKeys.get("ctrlKey").asBoolean(false);
+        boolean metaKey = modifierKeys.get("metaKey").asBoolean(false);
+        boolean shiftKey = modifierKeys.get("shiftKey").asBoolean(false);
+
+        if (shiftKey) {
+            selectRange(rangeStartItem, item, true);
+            return;
+        }
+
+        if (ctrlKey || metaKey) {
+            if (selected) {
+                select(item);
+            } else {
+                deselect(item);
+            }
+            return;
+        }
+
+        selectRange(item, item, true);
+        rangeStartItem = item;
     }
 
     /**
