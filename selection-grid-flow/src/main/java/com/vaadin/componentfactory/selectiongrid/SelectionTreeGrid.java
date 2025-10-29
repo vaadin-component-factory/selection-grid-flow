@@ -112,7 +112,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
-        expand(getAncestors(item));
+        scrollToItem(item);
         // int index = getIndexForItem(item);
         // if (index >= 0) {
         // // String internalId = (column != null)?getColumnInternalId(column):"";
@@ -130,21 +130,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * @param item the item where to scroll to
      */
     public void scrollToItem(T item) {
-        expand(getAncestors(item));
-        // int index = getIndexForItem(item);
-        // if (index >= 0) {
-        // this.getElement().executeJs("this.scrollWhenReady($0, true);", index);
-        // }
-    }
-
-    private List<T> getAncestors(T item) {
-        List<T> ancestors = new ArrayList<>();
-        T parent = getDataProvider().getParent(item);
-        while (parent != null) {
-            ancestors.add(parent);
-            parent = getDataProvider().getParent(parent);
-        }
-        return ancestors;
+        super.scrollToItem(item);
     }
 
     private void selectRange(T startItem, T endItem, boolean deselectOthers) {
@@ -170,7 +156,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         initSelectionModel();
     }
 
-    public void initSelectionModel() {
+    private void initSelectionModel() {
         if (getSelectionModel() instanceof GridMultiSelectionModel<T>) {
             setMultiSelectionColumnVisible(multiSelectionColumnVisible);
 
@@ -180,10 +166,18 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
                             const selectionColumn = this.querySelector('vaadin-grid-flow-selection-column');
                             selectionColumn.autoSelect = true;
                             selectionColumn._selectItem = function (item) {
-                                grid.$server.selectionTreeGridToggleItem(grid.getItemId(item), true, this._activeModifierKeys);
+                                grid.$server.selectionTreeGridToggleItem(
+                                    grid.getItemId(item),
+                                    true,
+                                    this._activeModifierKeys
+                                );
                             }
                             selectionColumn._deselectItem = function(item) {
-                                grid.$server.selectionTreeGridToggleItem(grid.getItemId(item), false, this._activeModifierKeys);
+                                grid.$server.selectionTreeGridToggleItem(
+                                    grid.getItemId(item),
+                                    false,
+                                    this._activeModifierKeys
+                                );
                             }
                             """);
         }
