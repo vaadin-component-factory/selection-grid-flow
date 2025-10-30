@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,9 +25,9 @@ import { Grid as GridElement } from  '@vaadin/grid/src/vaadin-grid.js';
 import {
     _getItemOverriden,
     _selectionGridSelectRow,
-    _selectionGridSelectRowWithItem,    
+    _selectionGridSelectRowWithItem,
     _debounce
-    
+
 } from './helpers';
 
 class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
@@ -149,6 +149,10 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
 
     static get version() {
         return '0.2.0';
+    }
+
+    static get lumoInjector() {
+      return { ...super.lumoInjector, is: 'vaadin-grid' }
     }
 }
 

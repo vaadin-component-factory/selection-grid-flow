@@ -25,12 +25,14 @@ import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
-import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider.HierarchyFormat;
+import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.selection.SelectionModel;
+import com.vaadin.flow.function.SerializableComparator;
+import com.vaadin.flow.function.ValueProvider;
 
 import tools.jackson.databind.node.ObjectNode;
 
@@ -93,7 +95,9 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     @Override
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
-        initSelectionModel();
+        if (this.getSelectionModel() instanceof SelectionModel.Multi) {
+        	setMultiSelectionColumnVisible(multiSelectionColumnVisible);
+        }
     }
 
     /**
@@ -133,92 +137,93 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         super.scrollToItem(item);
     }
 
-    private void selectRange(T startItem, T endItem, boolean deselectOthers) {
-        var items = fetchHierarchyRecursively(null);
-        var startIndex = items.indexOf(startItem);
-        var endIndex = items.indexOf(endItem);
-        var range = items.subList(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex) + 1);
-
-        if (deselectOthers) {
-            var oldSelectedItems = new HashSet<>(getSelectedItems());
-            var newSelectedItems = new HashSet<>(range);
-            oldSelectedItems.removeAll(newSelectedItems);
-            asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
-            return;
-        }
-
-        asMultiSelect().select(range);
-    }
-
-    @Override
-    protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
-        super.setSelectionModel(model, selectionMode);
-        initSelectionModel();
-    }
-
-    private void initSelectionModel() {
-        if (getSelectionModel() instanceof GridMultiSelectionModel<T>) {
-            setMultiSelectionColumnVisible(multiSelectionColumnVisible);
-
-            getElement().executeJs(
-                    """
-                            const grid = this;
-                            const selectionColumn = this.querySelector('vaadin-grid-flow-selection-column');
-                            selectionColumn.autoSelect = true;
-                            selectionColumn._selectItem = function (item) {
-                                grid.$server.selectionTreeGridToggleItem(
-                                    grid.getItemId(item),
-                                    true,
-                                    this._activeModifierKeys
-                                );
-                            }
-                            selectionColumn._deselectItem = function(item) {
-                                grid.$server.selectionTreeGridToggleItem(
-                                    grid.getItemId(item),
-                                    false,
-                                    this._activeModifierKeys
-                                );
-                            }
-                            """);
-        }
-    }
-
     @ClientCallable
-    private void selectionTreeGridToggleItem(String itemKey, boolean selected, ObjectNode modifierKeys) {
-        T item = getDataCommunicator().getKeyMapper().get(itemKey);
+    private void selectionTreeGridToggleItem(String itemKey, boolean selected, ObjectNode options) {
+        var item = getDataCommunicator().getKeyMapper().get(itemKey);
         if (item == null) {
             throw new IllegalArgumentException("Item with key %s not found".formatted(itemKey));
         }
 
-        boolean ctrlKey = modifierKeys.get("ctrlKey").asBoolean(false);
-        boolean metaKey = modifierKeys.get("metaKey").asBoolean(false);
-        boolean shiftKey = modifierKeys.get("shiftKey").asBoolean(false);
-
-        if (shiftKey) {
-            selectRange(rangeStartItem, item, true);
-            return;
-        }
-
-        if (ctrlKey || metaKey) {
-            if (selected) {
-                select(item);
+        if (selected) {
+            var deselectOthers = options.get("deselectOthers").asBoolean(false);
+            if (deselectOthers) {
+                asMultiSelect().setValue(Set.of(item));
             } else {
-                deselect(item);
+                select(item);
             }
-            return;
+        } else {
+            deselect(item);
         }
 
-        selectRange(item, item, true);
         rangeStartItem = item;
     }
 
+    @ClientCallable
+    private void selectionTreeGridSelectRange(String endItemKey, ObjectNode options) {
+        var rangeEndItem = getDataCommunicator().getKeyMapper().get(endItemKey);
+        if (rangeEndItem == null) {
+            throw new IllegalArgumentException("Item with key %s not found".formatted(endItemKey));
+        }
+
+        var range = fetchItemRange(rangeStartItem, rangeEndItem);
+
+        var deselectOthers = options.get("deselectOthers").asBoolean(false);
+        if (deselectOthers) {
+            asMultiSelect().setValue(new HashSet<>(range));
+        } else {
+            asMultiSelect().select(range);
+        }
+    }
+
+    private List<T> fetchItemRange(T startItem, T endItem) {
+        var items = fetchHierarchyRecursively(null);
+        var startIndex = items.indexOf(startItem);
+        var endIndex = items.indexOf(endItem);
+        return items.subList(
+                Math.min(startIndex, endIndex),
+                Math.max(startIndex, endIndex) + 1);
+    }
+
+    @Override
+    protected void setSelectionModel(GridSelectionModel<T> model, SelectionMode selectionMode) {
+        if (selectionMode == SelectionMode.MULTI) {
+        	setMultiSelectionColumnVisible(multiSelectionColumnVisible);
+        }
+        super.setSelectionModel(model, selectionMode);
+    }
+
     /**
-     * Runs a JavaScript snippet to hide the multi selection / checkbox column on
-     * the client side. The column
+     * Runs a JavaScript snippet to hide the multi selection / checkbox column on the client side. The column
      * is not removed, but set to "hidden" explicitly.
      */
     protected void hideMultiSelectionColumn() {
         this.setMultiSelectionColumnVisible(false);
+    }
+
+    @Override
+    public Column<T> addHierarchyColumn(ValueProvider<T, ?> valueProvider) {
+        Column<T> column = addColumn(LitRenderer.<T> of(
+                "<vaadin-grid-tree-toggle @click=${onClick} .leaf=${!item.children} .expanded=${model.expanded} .level=${model.level}>"
+                        + "</vaadin-grid-tree-toggle>${item.name}")
+                .withProperty("children",
+                        item -> getDataCommunicator().hasChildren(item))
+                .withProperty("name",
+                        value -> String.valueOf(valueProvider.apply(value)))
+                .withFunction("onClick", item -> {
+                    if (getDataCommunicator().hasChildren(item)) {
+                        if (isExpanded(item)) {
+                            collapse(List.of(item), true);
+                        } else {
+                            expand(List.of(item), true);
+                        }
+                    }
+                }));
+        final SerializableComparator<T> comparator =
+                (a, b) -> compareMaybeComparables(valueProvider.apply(a),
+                        valueProvider.apply(b));
+        column.setComparator(comparator);
+
+        return column;
     }
 
     /**
@@ -242,52 +247,49 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     }
 
     /**
-     * Returns true if the multi selection column is visible, false otherwise.
-     *
-     * @return
-     */
-    public boolean isMultiSelectionColumnVisible() {
-        return multiSelectionColumnVisible;
-    }
+	 * Returns true if the multi selection column is visible, false otherwise.
+	 * @return
+	 */
+	public boolean isMultiSelectionColumnVisible() {
+		return multiSelectionColumnVisible;
+	}
 
-    /**
-     * Sets the visibility of the multi selection column.
-     *
-     * @param multiSelectionColumnVisible - true to show the multi selection column,
-     *                                    false to hide it
-     */
-    public void setMultiSelectionColumnVisible(boolean multiSelectionColumnVisible) {
-        if (this.getSelectionModel() instanceof SelectionModel.Multi) {
-            getElement().getNode().runWhenAttached(ui -> ui.beforeClientResponse(this, context -> {
-                getElement().executeJs(
+	/**
+	 * Sets the visibility of the multi selection column.
+	 *
+	 * @param multiSelectionColumnVisible - true to show the multi selection column, false to hide it
+	 */
+	public void setMultiSelectionColumnVisible(boolean multiSelectionColumnVisible) {
+		if (this.getSelectionModel() instanceof SelectionModel.Multi) {
+	        getElement().getNode().runWhenAttached(ui ->
+            ui.beforeClientResponse(this, context -> {
+            	getElement().executeJs(
                         "if (this.querySelector('vaadin-grid-flow-selection-column')) {" +
-                                " this.querySelector('vaadin-grid-flow-selection-column').hidden = $0 }",
-                        !multiSelectionColumnVisible);
-                this.recalculateColumnWidths();
+                                " this.querySelector('vaadin-grid-flow-selection-column').hidden = $0 }", !multiSelectionColumnVisible);
+            	this.recalculateColumnWidths();
             }));
-        }
-        this.multiSelectionColumnVisible = multiSelectionColumnVisible;
-    }
+		}
+		this.multiSelectionColumnVisible = multiSelectionColumnVisible;
+	}
 
     /**
-     * Returns true if the checkbox selection is persistent, false otherwise.
-     *
-     * @return
-     */
-    public boolean isPersistentCheckboxSelection() {
-        return persistentCheckboxSelection;
-    }
+	 * Returns true if the checkbox selection is persistent, false otherwise.
+	 *
+	 * @return
+	 */
+	public boolean isPersistentCheckboxSelection() {
+		return persistentCheckboxSelection;
+	}
 
-    /**
-     * Sets the checkbox selection to be persistent or not.
-     *
-     * @param persistentCheckboxSelection - true to make the checkbox selection
-     *                                    persistent, false otherwise
-     */
-    public void setPersistentCheckboxSelection(boolean persistentCheckboxSelection) {
-        this.getElement().executeJs("this.classicCheckboxSelection = $0", !persistentCheckboxSelection);
-        this.persistentCheckboxSelection = persistentCheckboxSelection;
-    }
+	/**
+	 * Sets the checkbox selection to be persistent or not.
+	 *
+	 * @param persistentCheckboxSelection - true to make the checkbox selection persistent, false otherwise
+	 */
+	public void setPersistentCheckboxSelection(boolean persistentCheckboxSelection) {
+		this.getElement().executeJs("this.classicCheckboxSelection = $0", !persistentCheckboxSelection);
+		this.persistentCheckboxSelection = persistentCheckboxSelection;
+	}
 
     @SuppressWarnings("unchecked")
     private List<T> fetchHierarchyRecursively(T parent) {
