@@ -70,6 +70,11 @@ public class SelectionTreeGridViewWithCustomDataProvider extends VerticalLayout 
         }
 
         @Override
+        public int getItemIndex(Department item, HierarchicalQuery<Department, Void> query) {
+            return fetchChildrenFromBackEnd(query).toList().indexOf(item);
+        }
+
+        @Override
         protected Stream<Department> fetchChildrenFromBackEnd(HierarchicalQuery<Department, Void> query) {
             return departmentData.streamDepartments(query.getParent(), query.getOffset(), query.getLimit());
         }

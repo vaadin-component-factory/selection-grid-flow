@@ -129,34 +129,3 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
         this.rangeSelectRowFrom = index;
     }
 }
-
-export function _getItemOverriden(idx, el) {
-    if (idx >= this._flatSize) {
-        return;
-    }
-    el.index = idx;
-    const { cache, index } = this._dataProviderController.getFlatIndexContext(idx);
-    const item = cache.items[index];
-    if (item) {
-        this.__updateLoading(el, false);
-        this._updateItem(el, item);
-        if (this._isExpanded(item)) {
-            this._dataProviderController.ensureFlatIndexHierarchy(idx);
-        }
-    } else {
-        this.__updateLoading(el, true);
-        const page = Math.floor(index / this.pageSize);
-        this._dataProviderController.__loadCachePage(cache, page);
-    }
-    /** focus when get item if there is an item to focus **/
-    if (this._rowNumberToFocus > -1) {
-        if (idx === this._rowNumberToFocus) {
-            const row = Array.from(this.$.items.children).filter(
-                (child) => child.index === this._rowNumberToFocus
-            )[0];
-            if (row) {
-                this._focus();
-            }
-        }
-    }
-}

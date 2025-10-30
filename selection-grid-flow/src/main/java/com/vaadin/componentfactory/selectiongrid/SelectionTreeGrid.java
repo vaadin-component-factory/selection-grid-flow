@@ -113,29 +113,17 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
+        int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
+        getElement().callJsFunction("focusOnCellAfterScroll", colIndex);
         scrollToItem(item);
-        // int index = getIndexForItem(item);
-        // if (index >= 0) {
-        // // String internalId = (column != null)?getColumnInternalId(column):"";
-        // int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
-        // this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);",
-        // index, colIndex);
-        // }
-    }
-
-    /**
-     * The method for scrolling to an item. Takes into account lazy loading nature
-     * of grid and does the scroll operation only until the grid has finished
-     * loading data
-     *
-     * @param item the item where to scroll to
-     */
-    public void scrollToItem(T item) {
-        super.scrollToItem(item);
     }
 
     @ClientCallable
     private void selectionTreeGridToggleItem(String itemKey, boolean selected, ObjectNode options) {
+        if (getSelectionMode() != SelectionMode.MULTI) {
+            return;
+        }
+
         var item = getDataCommunicator().getKeyMapper().get(itemKey);
         if (item == null) {
             throw new IllegalArgumentException("Item with key %s not found".formatted(itemKey));
@@ -157,6 +145,10 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     @ClientCallable
     private void selectionTreeGridSelectRange(String endItemKey, ObjectNode options) {
+        if (getSelectionMode() != SelectionMode.MULTI) {
+            return;
+        }
+
         var rangeEndItem = getDataCommunicator().getKeyMapper().get(endItemKey);
         if (rangeEndItem == null) {
             throw new IllegalArgumentException("Item with key %s not found".formatted(endItemKey));
