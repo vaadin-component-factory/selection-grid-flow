@@ -85,7 +85,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     }
 
     /**
-     * Runs the super.onAttach and hides the multi selection column afterwards (if necessary).     * necessary).
+     * Runs the super.onAttach and hides the multi selection column afterwards (if necessary).
      *
      * @param attachEvent event
      */
@@ -162,7 +162,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
             throw new IllegalArgumentException("Item with key %s not found".formatted(endItemKey));
         }
 
-        var range = fetchItemRange(rangeStartItem, rangeEndItem);
+        var range = fetchRange(rangeStartItem, rangeEndItem);
 
         var deselectOthers = options.get("deselectOthers").asBoolean(false);
         if (deselectOthers) {
@@ -172,7 +172,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
         }
     }
 
-    private List<T> fetchItemRange(T startItem, T endItem) {
+    private List<T> fetchRange(T startItem, T endItem) {
         var items = fetchHierarchyRecursively(null);
         var startIndex = items.indexOf(startItem);
         var endIndex = items.indexOf(endItem);
@@ -194,7 +194,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * is not removed, but set to "hidden" explicitly.
      */
     protected void hideMultiSelectionColumn() {
-      this.setMultiSelectionColumnVisible(false);
+        this.setMultiSelectionColumnVisible(false);
     }
 
     @Override
@@ -270,7 +270,6 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     /**
 	 * Returns true if the checkbox selection is persistent, false otherwise.
-	 *
 	 * @return
 	 */
 	public boolean isPersistentCheckboxSelection() {
@@ -279,7 +278,6 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
 	/**
 	 * Sets the checkbox selection to be persistent or not.
-	 *
 	 * @param persistentCheckboxSelection - true to make the checkbox selection persistent, false otherwise
 	 */
 	public void setPersistentCheckboxSelection(boolean persistentCheckboxSelection) {
