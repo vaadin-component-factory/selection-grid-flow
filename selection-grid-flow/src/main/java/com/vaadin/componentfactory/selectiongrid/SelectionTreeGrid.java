@@ -74,10 +74,8 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     /**
      * Creates a new instance using the given hierarchical data provider.
      * <p>
-     * Please note, that when you want to use {@link #focusOnCell} or
-     * {@link #scrollToItem}, the data provider
-     * needs to implement
-     * </p>
+     * Please note, that when you want to use {@link #focusOnCell} or {@link #scrollToItem}, the data provider
+     * needs to implement</p>
      *
      * @param dataProvider dataProvider – the data provider, not null
      * @see TreeGrid#TreeGrid(HierarchicalDataProvider)
@@ -87,8 +85,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
     }
 
     /**
-     * Runs the super.onAttach and hides the multi selection column afterwards (if
-     * necessary).
+     * Runs the super.onAttach and hides the multi selection column afterwards (if necessary).     * necessary).
      *
      * @param attachEvent event
      */
@@ -197,7 +194,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * is not removed, but set to "hidden" explicitly.
      */
     protected void hideMultiSelectionColumn() {
-        this.setMultiSelectionColumnVisible(false);
+      this.setMultiSelectionColumnVisible(false);
     }
 
     @Override
@@ -256,7 +253,6 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
 	/**
 	 * Sets the visibility of the multi selection column.
-	 *
 	 * @param multiSelectionColumnVisible - true to show the multi selection column, false to hide it
 	 */
 	public void setMultiSelectionColumnVisible(boolean multiSelectionColumnVisible) {
