@@ -80,7 +80,7 @@ class VcfSelectionGridElement extends ElementMixin(ThemableMixin(GridElement)) {
     }
 
     static get version() {
-        return '0.2.0';
+        return '4.0.0';
     }
 
     static get lumoInjector() {
