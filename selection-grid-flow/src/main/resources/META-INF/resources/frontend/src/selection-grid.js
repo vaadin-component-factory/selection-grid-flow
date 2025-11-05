@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -52,14 +52,18 @@ customElements.whenDefined("vaadin-selection-grid").then(() => {
                 const item = tr._item;
                 const index = tr.index;
                 if (this.selectedItems && this.selectedItems.some((i) => i.key === item.key)) {
-                    if (this.$connector) {
+                    if (this.$server?.selectionTreeGridToggleItem) {
+                        this.$server.selectionTreeGridToggleItem(item.key, false, { deselectOthers: false });
+                    } else if (this.$connector) {
                         this.$connector.doDeselection([item], true);
                     } else {
                         this.deselectItem(item);
                     }
                 } else {
-                    if (this.$server) {
-                        this.$server.selectRangeOnly(index, index);
+                    if (this.$server?.selectionTreeGridToggleItem) {
+                      this.$server.selectionTreeGridToggleItem(item.key, true, { deselectOthers: false });
+                    } else if (this.$server) {
+                        this.$server.selectRangeOnly(item, item);
                     } else {
                         this.selectedItems = [];
                         this.selectItem(item);

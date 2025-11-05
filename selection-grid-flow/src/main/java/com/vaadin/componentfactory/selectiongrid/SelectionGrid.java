@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 @JsModule("./src/vcf-selection-grid.js")
 @JsModule("./src/selection-grid.js")
 public class SelectionGrid<T> extends Grid<T> {
-	  
+
     private Integer selectRangeOnlyFromIndex = null;
     private Set<T> selectRangeOnlySelection = new HashSet<T>();
     private boolean multiSelectionColumnVisible = false;
@@ -120,8 +120,8 @@ public class SelectionGrid<T> extends Grid<T> {
         int index = getIndexForItem(item);
         if (index > 0) {
             int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
-            // delay the call of focus on cell if it's used on the same round trip (grid creation + focusCell)
-            this.getElement().executeJs("setTimeout(function() { $0.focusOnCell($1, $2) });", getElement(), index, colIndex);
+            getElement().callJsFunction("focusOnCellAfterScroll", colIndex);
+            scrollToIndex(index);
         }
     }
 
@@ -174,7 +174,7 @@ public class SelectionGrid<T> extends Grid<T> {
 			}));
         }
     }
-    
+
 	@SuppressWarnings("unchecked")
 	private Set<T> obtainNewSelectedItems(int fromIndex, int toIndex) {
 		DataCommunicator<T> dataCommunicator = super.getDataCommunicator();
@@ -216,11 +216,11 @@ public class SelectionGrid<T> extends Grid<T> {
 		int end = fromIndex < toIndex ? toIndex : fromIndex;
         GridSelectionModel<T> model = getSelectionModel();
         if (model instanceof GridMultiSelectionModel) {
-                      
+
             Set<T> newSelectedItems = new HashSet<T>();
-          
+
             int calculatedFromIndex = start;
-          
+
             // selectRangeOnlySelection will keep the items already selected so there's no unnecessary
             // call to backend done
             if (!selectRangeOnlySelection.isEmpty()) {
@@ -231,10 +231,10 @@ public class SelectionGrid<T> extends Grid<T> {
               // unnecessary call to backend is done
               if (start == firstKey && end > lastKey) {
                 calculatedFromIndex = lastKey;
-                newSelectedItems.addAll(selectRangeOnlySelection);                
+                newSelectedItems.addAll(selectRangeOnlySelection);
               }
             }
-            
+
             final int calculatedFromIndexFinal = calculatedFromIndex;
 			this.getUI().ifPresent(ui->ui.beforeClientResponse(this, (ctx)->{
 	            newSelectedItems.addAll(obtainNewSelectedItems(calculatedFromIndexFinal, end));
@@ -242,16 +242,16 @@ public class SelectionGrid<T> extends Grid<T> {
 	            oldSelectedItems.removeAll(newSelectedItems);
 	            asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
 			}));
-            
+
             // update selectRangeOnlySelection with new selected items
             selectRangeOnlySelection = new HashSet<T>(getSelectedItems());
             selectRangeOnlyFromIndex = fromIndex;
         }
     }
-    
+
     /**
      * Select the range on click and makes sure selectRangeOnlySelection is cleared.
-     * 
+     *
      * @param fromIndex
      * @param toIndex
      */
@@ -269,9 +269,9 @@ public class SelectionGrid<T> extends Grid<T> {
 		Method fetchFromProvider;
 		int padding = 0;
 		int originalLimit = limit;
-		
+
 		if(dataCommunicator.isPagingEnabled() ) {
-			int end = offset + limit;			
+			int end = offset + limit;
 			while(true) {
 				padding = offset % limit;
 				int updatedOffset = offset - padding;
@@ -281,8 +281,8 @@ public class SelectionGrid<T> extends Grid<T> {
 				} else {
 					limit++;
 				}
-			}			
-		}		
+			}
+		}
 		try {
 			fetchFromProvider = DataCommunicator.class.getDeclaredMethod("fetchFromProvider", int.class, int.class);
 			fetchFromProvider.setAccessible(true);
@@ -340,7 +340,7 @@ public class SelectionGrid<T> extends Grid<T> {
 
 	/**
 	 * Sets the visibility of the multi selection column.
-	 * 
+	 *
 	 * @param multiSelectionColumnVisible - true to show the multi selection column, false to hide it
 	 */
 	public void setMultiSelectionColumnVisible(boolean multiSelectionColumnVisible) {
@@ -358,7 +358,7 @@ public class SelectionGrid<T> extends Grid<T> {
 
 	/**
 	 * Returns true if the checkbox selection is persistent, false otherwise.
-	 * 
+	 *
 	 * @return
 	 */
 	public boolean isPersistentCheckboxSelection() {
@@ -367,7 +367,7 @@ public class SelectionGrid<T> extends Grid<T> {
 
 	/**
 	 * Sets the checkbox selection to be persistent or not.
-	 * 
+	 *
 	 * @param persistentCheckboxSelection - true to make the checkbox selection persistent, false otherwise
 	 */
 	public void setPersistentCheckboxSelection(boolean persistentCheckboxSelection) {

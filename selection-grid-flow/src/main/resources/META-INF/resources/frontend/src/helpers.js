@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,11 +56,13 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
     }
     // if click select only this row
     if (!ctrlKey && !e.shiftKey) {
-        if (this.$server) {
-			this._debounce(() => { 
+      if (this.$server?.selectionTreeGridToggleItem) {
+        this.$server.selectionTreeGridToggleItem(item.key, true, { deselectOthers: true });
+      } else if (this.$server) {
+			this._debounce(() => {
 				this.$server.selectRangeOnlyOnClick(index, index);
             }, 100);
-            
+
         } else {
             this.selectedItems = [];
             this.selectItem(item);
@@ -80,71 +82,50 @@ export function _selectionGridSelectRowWithItem(e, item, index) {
         }
 
         if (!ctrlKey) {
-            if (this.$server) {
-				this._debounce(() => { 
+          if (this.$server?.selectionTreeGridSelectRange) {
+            this.$server.selectionTreeGridSelectRange(item.key, { deselectOthers: true });
+          } else if (this.$server) {
+				this._debounce(() => {
                 	this.$server.selectRangeOnly(this.rangeSelectRowFrom, index);
             	}, 100);
             }
         } else {
-            if (this.$server) {
-				this._debounce(() => { 
+            if (this.$server?.selectionTreeGridSelectRange) {
+            this.$server.selectionTreeGridSelectRange(item.key, { deselectOthers: false });
+          } else if (this.$server) {
+				this._debounce(() => {
                 	this.$server.selectRange(this.rangeSelectRowFrom, index);
                 }, 100);
             }
         }
     } else {
         if (!ctrlKey) {
-            if (this.$server) {
-				this._debounce(() => { 
+          if (this.$server?.selectionTreeGridToggleItem) {
+            this.$server.selectionTreeGridToggleItem(item.key, true, { deselectOthers: true });
+          } else if (this.$server) {
+				this._debounce(() => {
 					this.$server.selectRangeOnlyOnClick(index, index);
 	            }, 100);
             }
         } else {
             if (this.selectedItems && this.selectedItems.some((i) => i.key === item.key)) {
-                if (this.$connector) {
+                if (this.$server?.selectionTreeGridToggleItem) {
+                  this.$server.selectionTreeGridToggleItem(item.key, false, { deselectOthers: false });
+                } else if (this.$connector) {
                     this.$connector.doDeselection([item], true);
                 } else {
                     this.deselectItem(item);
                 }
             } else {
-                if (this.$server) {
-					this._debounce(() => { 
+                if (this.$server?.selectionTreeGridToggleItem) {
+                  this.$server.selectionTreeGridToggleItem(item.key, true, { deselectOthers: false });
+                } else if (this.$server) {
+					this._debounce(() => {
                     	this.$server.selectRange(index, index);
                     }, 100);
                 }
             }
         }
         this.rangeSelectRowFrom = index;
-    }
-}
-
-export function _getItemOverriden(idx, el) {
-    if (idx >= this._flatSize) {
-        return;
-    }
-    el.index = idx;
-    const { cache, index } = this._dataProviderController.getFlatIndexContext(idx);
-    const item = cache.items[index];
-    if (item) {
-        this.__updateLoading(el, false);
-        this._updateItem(el, item);
-        if (this._isExpanded(item)) {
-            this._dataProviderController.ensureFlatIndexHierarchy(idx);
-        }
-    } else {
-        this.__updateLoading(el, true);
-        const page = Math.floor(index / this.pageSize);
-        this._dataProviderController.__loadCachePage(cache, page);
-    }
-    /** focus when get item if there is an item to focus **/
-    if (this._rowNumberToFocus > -1) {
-        if (idx === this._rowNumberToFocus) {
-            const row = Array.from(this.$.items.children).filter(
-                (child) => child.index === this._rowNumberToFocus
-            )[0];
-            if (row) {
-                this._focus();
-            }
-        }
     }
 }

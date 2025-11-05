@@ -25,20 +25,17 @@ import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dependency.JsModule;
-import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
-import com.vaadin.flow.data.provider.hierarchy.HierarchyMapper;
-import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider.HierarchyFormat;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.selection.SelectionModel;
 import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.function.ValueProvider;
-import com.vaadin.flow.internal.Range;
 
-import java.lang.reflect.Method;
+import tools.jackson.databind.node.ObjectNode;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,6 +53,8 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
     private boolean multiSelectionColumnVisible = false;
     private boolean persistentCheckboxSelection = true;
+
+    private T rangeStartItem;
 
     /**
      * @see TreeGrid#TreeGrid()
@@ -114,112 +113,64 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * @param column column to focus
      */
     public void focusOnCell(T item, Column<T> column) {
-        expandAncestor(item);
-        int index = getIndexForItem(item);
-        if (index >= 0) {
-            //String internalId = (column != null)?getColumnInternalId(column):"";
-            int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
-            this.getElement().executeJs("this.focusOnCellWhenReady($0, $1, true);", index, colIndex);
-        }
+        int colIndex = (column != null) ? getColumns().indexOf(column) : 0;
+        getElement().callJsFunction("focusOnCellAfterScroll", colIndex);
+        scrollToItem(item);
     }
 
-    /**
-     * The method for scrolling to an item. Takes into account lazy loading nature
-     * of grid and does the scroll operation only until the grid has finished
-     * loading data
-     *
-     * @param item the item where to scroll to
-     */
-    public void scrollToItem(T item) {
-        expandAncestor(item);
-        int index = getIndexForItem(item);
-        if (index >= 0) {
-            this.getElement().executeJs("this.scrollWhenReady($0, true);", index);
-        }
-    }
-
-    private List<T> expandAncestor(T item) {
-        List<T> ancestors = new ArrayList<>();
-
-        ParentItemProvider<T> parentItemProvider = getParentItemProvider();
-
-        Optional<T> parent = parentItemProvider.getParent(item);
-        while (parent.isPresent()) {
-            ancestors.add(parent.get());
-            parent = parentItemProvider.getParent(parent.get());
-        }
-        if (!ancestors.isEmpty()) {
-            expand(ancestors);
-        }
-        return ancestors;
-    }
-
-    @SuppressWarnings("unchecked")
-    private ParentItemProvider<T> getParentItemProvider() {
-        ParentItemProvider<T> parentItemProvider;
-        if (getDataProvider() instanceof TreeDataProvider) {
-            return itemToCheck -> Optional.ofNullable(getTreeData().getParent(itemToCheck));
-        }
-
-        if (getDataProvider() instanceof ParentItemProvider) {
-            return (ParentItemProvider<T>) getDataProvider();
-        }
-
-        throw new IllegalStateException("The data provider must either be a TreeDataProvider or " +
-                "implement ParentItemProvider to use this method");
-    }
-
-    private int getIndexForItem(T item) {
-        HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-        return dataCommunicator.getIndex(item);
-    }
-  
     @ClientCallable
-    private void selectRange(int fromIndex, int toIndex) {
-        int from = Math.min(fromIndex, toIndex);
-        int to = Math.max(fromIndex, toIndex);
-
-        HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-        Method getHierarchyMapper;
-        try {
-            getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
-            getHierarchyMapper.setAccessible(true);
-            HierarchyMapper<T, ?> mapper = (HierarchyMapper<T, ?>) getHierarchyMapper.invoke(dataCommunicator);
-            asMultiSelect().select((mapper.fetchHierarchyItems(Range.withLength(from, to - from + 1))).collect(Collectors.toSet()));
-        } catch (Exception ignored) {
+    private void selectionTreeGridToggleItem(String itemKey, boolean selected, ObjectNode options) {
+        if (getSelectionMode() != SelectionMode.MULTI) {
+            return;
         }
-    }
 
-    /**
-     * Select the range and deselect the other items
-     *
-     * @param fromIndex
-     * @param toIndex
-     */
-    @ClientCallable
-    private void selectRangeOnly(int fromIndex, int toIndex) {
-        GridSelectionModel<T> model = getSelectionModel();
-        if (model instanceof GridMultiSelectionModel) {
-            int from = Math.min(fromIndex, toIndex);
-            int to = Math.max(fromIndex, toIndex);
-            HierarchicalDataCommunicator<T> dataCommunicator = super.getDataCommunicator();
-            Method getHierarchyMapper;
-            try {
-                getHierarchyMapper = HierarchicalDataCommunicator.class.getDeclaredMethod("getHierarchyMapper");
-                getHierarchyMapper.setAccessible(true);
-                HierarchyMapper<T, ?> mapper = (HierarchyMapper<T, ?>) getHierarchyMapper.invoke(dataCommunicator);
-                Set<T> newSelectedItems = (mapper.fetchHierarchyItems(Range.withLength(from, to - from + 1))).collect(Collectors.toSet());
-                HashSet<T> oldSelectedItems = new HashSet<>(getSelectedItems());
-                oldSelectedItems.removeAll(newSelectedItems);
-                asMultiSelect().updateSelection(newSelectedItems, oldSelectedItems);
-            } catch (Exception ignored) {
+        var item = getDataCommunicator().getKeyMapper().get(itemKey);
+        if (item == null) {
+            throw new IllegalArgumentException("Item with key %s not found".formatted(itemKey));
+        }
+
+        if (selected) {
+            var deselectOthers = options.get("deselectOthers").asBoolean(false);
+            if (deselectOthers) {
+                asMultiSelect().setValue(Set.of(item));
+            } else {
+                select(item);
             }
+        } else {
+            deselect(item);
+        }
+
+        rangeStartItem = item;
+    }
+
+    @ClientCallable
+    private void selectionTreeGridSelectRange(String endItemKey, ObjectNode options) {
+        if (getSelectionMode() != SelectionMode.MULTI) {
+            return;
+        }
+
+        var rangeEndItem = getDataCommunicator().getKeyMapper().get(endItemKey);
+        if (rangeEndItem == null) {
+            throw new IllegalArgumentException("Item with key %s not found".formatted(endItemKey));
+        }
+
+        var range = fetchRange(rangeStartItem, rangeEndItem);
+
+        var deselectOthers = options.get("deselectOthers").asBoolean(false);
+        if (deselectOthers) {
+            asMultiSelect().setValue(new HashSet<>(range));
+        } else {
+            asMultiSelect().select(range);
         }
     }
-    
-    @ClientCallable
-    private void selectRangeOnlyOnClick(int fromIndex, int toIndex) {
-        selectRangeOnly(fromIndex, toIndex);
+
+    private List<T> fetchRange(T startItem, T endItem) {
+        var items = fetchHierarchyRecursively(null);
+        var startIndex = items.indexOf(startItem);
+        var endIndex = items.indexOf(endItem);
+        return items.subList(
+                Math.min(startIndex, endIndex),
+                Math.max(startIndex, endIndex) + 1);
     }
 
     @Override
@@ -235,7 +186,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
      * is not removed, but set to "hidden" explicitly.
      */
     protected void hideMultiSelectionColumn() {
-    	this.setMultiSelectionColumnVisible(false);
+        this.setMultiSelectionColumnVisible(false);
     }
 
     @Override
@@ -284,7 +235,7 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
                 .map(SelectionGridVariant::getVariantName).collect(Collectors.toList()));
     }
 
-	/**
+    /**
 	 * Returns true if the multi selection column is visible, false otherwise.
 	 * @return
 	 */
@@ -294,7 +245,6 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
 	/**
 	 * Sets the visibility of the multi selection column.
-	 * 
 	 * @param multiSelectionColumnVisible - true to show the multi selection column, false to hide it
 	 */
 	public void setMultiSelectionColumnVisible(boolean multiSelectionColumnVisible) {
@@ -310,9 +260,8 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 		this.multiSelectionColumnVisible = multiSelectionColumnVisible;
 	}
 
-	/**
+    /**
 	 * Returns true if the checkbox selection is persistent, false otherwise.
-	 * 
 	 * @return
 	 */
 	public boolean isPersistentCheckboxSelection() {
@@ -321,11 +270,28 @@ public class SelectionTreeGrid<T> extends TreeGrid<T> {
 
 	/**
 	 * Sets the checkbox selection to be persistent or not.
-	 * 
 	 * @param persistentCheckboxSelection - true to make the checkbox selection persistent, false otherwise
 	 */
 	public void setPersistentCheckboxSelection(boolean persistentCheckboxSelection) {
 		this.getElement().executeJs("this.classicCheckboxSelection = $0", !persistentCheckboxSelection);
 		this.persistentCheckboxSelection = persistentCheckboxSelection;
 	}
+
+    @SuppressWarnings("unchecked")
+    private List<T> fetchHierarchyRecursively(T parent) {
+        var dataCommunicator = getDataCommunicator();
+        var dataProvider = (HierarchicalDataProvider<T, Object>) dataCommunicator.getDataProvider();
+        var query = dataCommunicator.buildQuery(parent, 0, Integer.MAX_VALUE);
+
+        var result = new ArrayList<T>();
+        dataProvider.fetchChildren(query).forEach((child) -> {
+            result.add(child);
+
+            if (dataProvider.getHierarchyFormat().equals(HierarchyFormat.NESTED)
+                    && dataCommunicator.isExpanded(child)) {
+                result.addAll(fetchHierarchyRecursively(child));
+            }
+        });
+        return result;
+    }
 }
